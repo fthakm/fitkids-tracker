@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import "jspdf-autotable";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -32,7 +32,7 @@ export default function App() {
   const [newStudentName, setNewStudentName] = useState("");
   const [newStudentAge, setNewStudentAge] = useState("6-8");
   const [inputValues, setInputValues] = useState({});
-  const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
+  const [filterDate, setFilterDate] = useState(new Date().toISOString().split("T")[0]);
   const [selectedAgeFilter, setSelectedAgeFilter] = useState("6-8");
 
   // --- CRUD Siswa --- //
@@ -51,8 +51,9 @@ export default function App() {
     if(!selectedStudent) return;
     setStudents(students.map(s=>{
       if(s.name!==selectedStudent) return s;
+      const today = new Date().toISOString().split("T")[0];
       const results = Object.entries(inputValues).map(([ex,val])=>({
-        date: new Date().toLocaleDateString(),
+        date: today,
         exercise: ex,
         target: targetData[s.age][ex]||0,
         value: val
@@ -79,9 +80,10 @@ export default function App() {
     doc.text(`Usia: ${student.age}`,14,30);
     doc.text(`Badge: ${student.badge||"-"}`,14,40);
     const rows = student.results.map(r=>[r.date,r.exercise,r.target,r.value,r.value>=r.target?"✔":"❌"]);
-    autoTable(doc,{head:[["Tanggal","Latihan","Target","Hasil","Status"]],body:rows,startY:50});
+    doc.autoTable({head:[["Tanggal","Latihan","Target","Hasil","Status"]],body:rows,startY:50});
     doc.save(`laporan_${student.name}.pdf`);
   };
+
   const exportExcel = (student) => {
     const ws = XLSX.utils.json_to_sheet(student.results);
     const wb = XLSX.utils.book_new();
@@ -97,6 +99,9 @@ export default function App() {
     ]
   });
 
+  const selectedStudentObj = students.find(s=>s.name===selectedStudent);
+  const exercises = selectedStudentObj ? Object.keys(targetData[selectedStudentObj.age]) : [];
+
   return (
     <div style={{padding:"15px"}}>
       <h1>📊 FitKids Tracker</h1>
@@ -108,21 +113,21 @@ export default function App() {
         )}
       </div>
 
-      {/* --- Dashboard --- */}
+      {/* Dashboard */}
       {tab==="dashboard" && (
         <div>
           <h2>Dashboard</h2>
           <label>Filter Tanggal: </label>
           <input type="date" value={filterDate} onChange={e=>setFilterDate(e.target.value)} />
           {students.map(s=>{
-            const results = s.results.filter(r=>r.date===new Date(filterDate).toLocaleDateString());
+            const results = s.results.filter(r=>r.date===filterDate);
             if(results.length===0) return null;
             return (
               <div className="card" key={s.name}>
                 <h3>{s.name} ({s.age}) - Badge: {s.badge||"-"}</h3>
                 {results.map(r=>(
                   <div key={r.exercise}>
-                    {r.exercise}: {r.value} (Target: {r.target}) 
+                    {r.exercise}: {r.value} (Target: {r.target})
                     <button onClick={()=>deleteResult(s.name,r.date,r.exercise)}>❌ Hapus</button>
                   </div>
                 ))}
@@ -132,19 +137,19 @@ export default function App() {
         </div>
       )}
 
-      {/* --- Leaderboard --- */}
+      {/* Leaderboard */}
       {tab==="leaderboard" && (
         <div>
           <h2>Leaderboard</h2>
           <ol>
-            {students.sort((a,b)=>b.results.filter(r=>r.value>=r.target).length - a.results.filter(r=>r.value>=r.target).length).map(s=>
+            {[...students].sort((a,b)=>b.results.filter(r=>r.value>=r.target).length - a.results.filter(r=>r.value>=r.target).length).map(s=>
               <li key={s.name}>{s.name} ({s.age}) - ✔ {s.results.filter(r=>r.value>=r.target).length}</li>
             )}
           </ol>
         </div>
       )}
 
-      {/* --- List Siswa --- */}
+      {/* List Siswa */}
       {tab==="list" && (
         <div>
           <h2>List Siswa Berdasarkan Usia</h2>
@@ -166,7 +171,7 @@ export default function App() {
         </div>
       )}
 
-      {/* --- Input Nilai --- */}
+      {/* Input Nilai */}
       {tab==="input" && (
         <div>
           <h2>Input Nilai Latihan</h2>
@@ -175,13 +180,13 @@ export default function App() {
             <option value="">--Pilih--</option>
             {students.map(s=><option key={s.name} value={s.name}>{s.name}</option>)}
           </select>
-          {selectedStudent && (
+          {selectedStudentObj && (
             <div>
               <h3>Input Nilai</h3>
-              {Object.keys(targetData[students.find(s=>s.name===selectedStudent).age]).map(ex => (
+              {exercises.map(ex => (
                 <div key={ex}>
                   <label>
-                    {ex} (Target: {targetData[students.find(s=>s.name===selectedStudent).age][ex]}):{" "}
+                    {ex} (Target: {targetData[selectedStudentObj.age][ex]}):{" "}
                   </label>
                   <input
                     type="number"
@@ -196,7 +201,7 @@ export default function App() {
         </div>
       )}
 
-      {/* --- Manage Siswa --- */}
+      {/* Manage Siswa */}
       {tab==="manage" && (
         <div>
           <h2>Manage Siswa</h2>
