@@ -1,164 +1,170 @@
-import React, { useState, useRef } from "react";
-import { Button } from "./components/ui/Button";
-import { Card, CardContent } from "./components/ui/Card";
+import React, { useState } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Line } from "react-chartjs-2";
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from "chart.js";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+} from "chart.js";
+import * as XLSX from "xlsx";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-export default function App() {
-  const [students, setStudents] = useState([
-    {
-      name: "Rafi",
-      ageGroup: "9-11",
-      results: [
-        { date: '2025-10-01', exercise: 'Skipping', target: 160, value: 120 },
-        { date: '2025-10-01', exercise: 'Jump Squat', target: 40, value: 35 },
-        { date: '2025-10-01', exercise: 'Shuttle Run 6x10', target: 15, value: 17 },
-        { date: '2025-10-01', exercise: 'Sprint 20m', target: 5, value: 5 },
-      ],
-      badge: '',
-    },
-  ]);
+// --- Komponen UI --- //
+const Button = ({ children, ...props }) => (
+  <button {...props} style={{ padding: "8px", margin: "4px", background: "#4CAF50", color: "#fff", border: "none", borderRadius: "4px" }}>
+    {children}
+  </button>
+);
 
-  const chartRefs = useRef({});
+const Card = ({ children, style }) => (
+  <div style={{ background: "#fff", padding: "12px", borderRadius: "8px", boxShadow: "0 2px 5px rgba(0,0,0,0.1)", marginBottom: "12px", ...style }}>
+    {children}
+  </div>
+);
+
+// --- Target Latihan --- //
+const targetData = {
+  "6-8": { Skipping: 120, "Jump Squat": 35, "Shuttle Run 4x10": 11 },
+  "9-11": { Skipping: 160, "Jump Squat": 40, "Shuttle Run 6x10": 15, "Sprint 20m": 5 },
+  "12-15": { "Yo-Yo Test Lvl 15": 0, PushUp: 40, SitUp: 40, "Jump Squat": 30, Skipping: 190 },
+  "16+": { "Yo-Yo Test Lvl 17": 0, PushUp: 45, SitUp: 50, "Jump Squat": 45, Skipping: 225 },
+};
+
+// --- App --- //
+export default function App() {
+  const [students, setStudents] = useState([]);
+  const [selectedStudent, setSelectedStudent] = useState("");
+  const [newStudentName, setNewStudentName] = useState("");
+  const [ageGroup, setAgeGroup] = useState("6-8");
+  const [inputValues, setInputValues] = useState({});
+
+  const addStudent = () => {
+    if (!newStudentName) return;
+    const student = { name: newStudentName, ageGroup, results: [], badge: "" };
+    setStudents([...students, student]);
+    setSelectedStudent(newStudentName);
+    setNewStudentName("");
+    setInputValues({});
+  };
+
+  const handleInput = (exercise, value) => {
+    setInputValues({ ...inputValues, [exercise]: Number(value) });
+  };
+
+  const saveResults = () => {
+    setStudents(students.map(s => {
+      if (s.name !== selectedStudent) return s;
+      const results = Object.entries(inputValues).map(([ex, val]) => ({
+        date: new Date().toLocaleDateString(),
+        exercise: ex,
+        target: targetData[s.ageGroup][ex] || 0,
+        value: val
+      }));
+      const badge = results.every(r => r.value >= r.target) ? "✔" : "❌";
+      return { ...s, results, badge };
+    }));
+  };
 
   const exportPDF = (student) => {
     const doc = new jsPDF();
     doc.text(`Laporan Latihan - ${student.name}`, 14, 20);
     doc.text(`Usia: ${student.ageGroup}`, 14, 30);
     doc.text(`Badge: ${student.badge || "-"}`, 14, 40);
-
-    const canvas = chartRefs.current[student.name];
-    if (canvas) {
-      const chartImage = canvas.toBase64Image();
-      doc.addImage(chartImage, 'PNG', 15, 50, 180, 90);
-    }
-
-    const rows = student.results.map((r) => [
-      r.date,
-      r.exercise,
-      r.target,
-      r.value,
-      r.value >= r.target ? "✔" : "❌",
-    ]);
-
-    autoTable(doc, {
-      head: [["Tanggal", "Latihan", "Target", "Hasil", "Status"]],
-      body: rows,
-      startY: 150,
-    });
-
+    const rows = student.results.map(r => [r.date, r.exercise, r.target, r.value, r.value >= r.target ? "✔" : "❌"]);
+    autoTable(doc, { head: [["Tanggal", "Latihan", "Target", "Hasil", "Status"]], body: rows, startY: 50 });
     doc.save(`laporan_${student.name}.pdf`);
   };
 
-  const generateRecommendation = (student) => {
-    return student.results.map(r => {
-      let status = r.value >= r.target ? '✔' : '❌';
-      let recommendation = '';
-      if (r.value < r.target) {
-        switch (r.exercise) {
-          case 'Skipping':
-            recommendation = 'Tambah 2 sesi 5-10 menit skipping, fokus teknik';
-            break;
-          case 'Jump Squat':
-            recommendation = 'Latihan squat + calf raise 3x/minggu';
-            break;
-          case 'Shuttle Run 6x10':
-            recommendation = 'Sprint pendek 4x/minggu + agility drills';
-            break;
-          case 'Sprint 20m':
-            recommendation = 'Tambahkan sprint 25m 2x/minggu';
-            break;
-          case 'Push Up':
-            recommendation = 'Push-up + core strengthening 3x/minggu';
-            break;
-          case 'Sit Up':
-            recommendation = 'Pertahankan rutin 3x/minggu';
-            break;
-          case 'Yo-Yo Test lvl 15':
-            recommendation = 'Latihan endurance ringan + lari interval 2x/minggu';
-            break;
-          default:
-            recommendation = 'Latihan rutin sesuai kemampuan';
-        }
-      } else {
-        recommendation = 'Pertahankan performa atau naik level';
-      }
-      return { ...r, status, recommendation };
-    });
+  const exportExcel = (student) => {
+    const ws = XLSX.utils.json_to_sheet(student.results);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Latihan");
+    XLSX.writeFile(wb, `laporan_${student.name}.xlsx`);
   };
 
-  const getChartData = (student) => {
-    const labels = student.results.map(r => r.date);
-    const exercises = [...new Set(student.results.map(r => r.exercise))];
-
-    const colors = {
-      Skipping: '#0000FF',
-      'Push Up': '#FF0000',
-      'Sit Up': '#00FF00',
-      'Jump Squat': '#800080',
-      'Shuttle Run': '#FFA500',
-      'Sprint 20m': '#000000',
-      'Yo-Yo Test': '#A52A2A',
+  const chartData = () => {
+    if (!selectedStudent) return {};
+    const s = students.find(st => st.name === selectedStudent);
+    if (!s) return {};
+    return {
+      labels: s.results.map(r => r.exercise),
+      datasets: [{
+        label: "Hasil",
+        data: s.results.map(r => r.value),
+        borderColor: "#4CAF50",
+        backgroundColor: "#A8E6CF"
+      }, {
+        label: "Target",
+        data: s.results.map(r => r.target),
+        borderColor: "#FF5252",
+        borderDash: [5,5],
+        backgroundColor: "#FFCDD2"
+      }]
     };
-
-    const datasets = exercises.map(ex => ({
-      label: ex,
-      data: student.results.filter(r => r.exercise === ex).map(r => r.value),
-      borderColor: colors[ex] || '#000000',
-      backgroundColor: colors[ex] || '#000000',
-      tension: 0,
-      fill: false,
-      pointRadius: 0,
-    }));
-
-    return { labels, datasets };
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">📊 Aplikasi Track Latihan Anak</h1>
+    <div style={{ padding: "20px" }}>
+      <h1>📊 FitKids Tracker</h1>
 
-      {students.map((s, idx) => {
-        const recommendations = generateRecommendation(s);
-        return (
-          <Card key={idx} className="mb-6">
-            <CardContent className="p-4">
-              <h2 className="text-lg font-semibold mb-2">{s.name} ({s.ageGroup})</h2>
-              <Button onClick={() => alert('Rekomendasi Mingguan Diperbarui!')}>Generate Plan Mingguan</Button>
-              <table className="w-full border mt-4">
-                <thead>
-                  <tr>
-                    <th className="border p-2">Latihan</th>
-                    <th className="border p-2">Target</th>
-                    <th className="border p-2">Hasil Terakhir</th>
-                    <th className="border p-2">Status</th>
-                    <th className="border p-2">Rekomendasi Mingguan</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recommendations.map((r, i) => (
-                    <tr key={i} className={r.status === '❌' ? 'bg-red-100' : 'bg-green-100'}>
-                      <td className="border p-2">{r.exercise}</td>
-                      <td className="border p-2">{r.target}</td>
-                      <td className="border p-2">{r.value}</td>
-                      <td className="border p-2">{r.status}</td>
-                      <td className="border p-2">{r.recommendation}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div style={{ display: 'none' }}>
-                <Line ref={el => chartRefs.current[s.name] = el?.canvas} data={getChartData(s)} />
-              </div>
-              <Button onClick={() => exportPDF(s)} className="mt-2">📑 Export PDF</Button>
-            </CardContent>
-          </Card>
-        );
-      })}
+      {/* Tambah Siswa */}
+      <Card>
+        <h2>Tambah Siswa</h2>
+        <input placeholder="Nama siswa" value={newStudentName} onChange={e=>setNewStudentName(e.target.value)} />
+        <select value={ageGroup} onChange={e=>setAgeGroup(e.target.value)}>
+          {Object.keys(targetData).map(a=> <option key={a} value={a}>{a}</option>)}
+        </select>
+        <Button onClick={addStudent}>➕ Tambah</Button>
+      </Card>
+
+      {/* Pilih Siswa */}
+      {students.length>0 && (
+        <Card>
+          <h2>Pilih Siswa</h2>
+          <select value={selectedStudent} onChange={e=>setSelectedStudent(e.target.value)}>
+            <option value="">-- Pilih --</option>
+            {students.map(s=><option key={s.name} value={s.name}>{s.name}</option>)}
+          </select>
+        </Card>
+      )}
+
+      {/* Input Latihan */}
+      {selectedStudent && (
+        <Card>
+          <h2>Input Latihan</h2>
+          {Object.keys(targetData[students.find(s=>s.name===selectedStudent).ageGroup]).map(ex => (
+            <div key={ex} style={{ marginBottom: "8px" }}>
+              <label>{ex} (Target {targetData[students.find(s=>s.name===selectedStudent).ageGroup][ex]}): </label>
+              <input type="number" onChange={e=>handleInput(ex,e.target.value)} />
+            </div>
+          ))}
+          <Button onClick={saveResults}>💾 Simpan Hasil</Button>
+        </Card>
+      )}
+
+      {/* Grafik */}
+      {selectedStudent && students.find(s=>s.name===selectedStudent).results.length>0 && (
+        <Card>
+          <h2>📈 Grafik Perkembangan</h2>
+          <Line data={chartData()} />
+        </Card>
+      )}
+
+      {/* Laporan */}
+      {selectedStudent && students.find(s=>s.name===selectedStudent).results.length>0 && (
+        <Card>
+          <h2>Laporan</h2>
+          <Button onClick={()=>exportPDF(students.find(s=>s.name===selectedStudent))}>📑 Export PDF</Button>
+          <Button onClick={()=>exportExcel(students.find(s=>s.name===selectedStudent))}>📊 Export Excel</Button>
+        </Card>
+      )}
     </div>
   );
-      }
+        }
