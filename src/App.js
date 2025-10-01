@@ -163,7 +163,7 @@ export default function App() {
                 <div>
                   <h4>Overview:</h4>
                   <div>
-                    {s.results.length===0?"Belum ada hasil":s.results.map(r=>(
+                    {s.results.length===0 ? "Belum ada hasil" : s.results.map(r=>(
                       <div key={r.date+"-"+r.exercise}>
                         {r.date} | {r.exercise}: {r.value} (Target: {r.target}) 
                         <button onClick={()=>deleteResult(s.name,r.date,r.exercise)}>❌</button>
@@ -181,32 +181,6 @@ export default function App() {
               )}
             </div>
           ))}
-        </div>
-      )}
-
-      {/* --- TAB: Input Nilai --- */}
-      {tab==="input" && (
-        <div>
-          <h2>Input Nilai</h2>
-          <label>Pilih Siswa: </label>
-          <select value={selectedStudent} onChange={e=>setSelectedStudent(e.target.value)}>
-            <option value="">--Pilih--</option>
-            {students.map(s=><option key={s.name} value={s.name}>{s.name}</option>)}
-          </select>
-          {selectedStudent && (
-            <div>
-              {Object.keys(targetData[students.find(s=>s.name===selectedStudent).age]).map(ex=>(
-                <div key={ex}>
-                  <label>{ex} (Target: {targetData[students.find(s=>s.name===selectedStudent).age][ex]}): </label>
-                  <input type="number" value={inputValues[ex]||""} onChange={e=>handleInput(ex,e.target.value)} />
-                </div>
-              ))}
-              <button onClick={saveResults}>💾 Simpan</button>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* --- TAB: Manage Siswa --- */}
       {tab==="manage" && (
         <div>
