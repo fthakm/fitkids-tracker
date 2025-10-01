@@ -154,4 +154,88 @@ export default function App() {
           <select value={selectedAgeFilter} onChange={e=>setSelectedAgeFilter(e.target.value)}>
             {ageGroups.map(a=><option key={a} value={a}>{a}</option>)}
           </select>
-          {students.filter(s=>s.age===selectedAge
+          {students.filter(s=>s.age===selectedAgeFilter).map(s=>(
+            <div key={s.name} className="card">
+              <h3 onClick={()=>setSelectedStudent(s.name)} style={{cursor:"pointer"}}>
+                {s.name} - Badge: {s.badge||"-"}
+              </h3>
+              {selectedStudent===s.name && (
+                <div>
+                  <h4>Overview:</h4>
+                  <div>
+                    {s.results.length===0?"Belum ada hasil":s.results.map(r=>(
+                      <div key={r.date+"-"+r.exercise}>
+                        {r.date} | {r.exercise}: {r.value} (Target: {r.target}) 
+                        <button onClick={()=>deleteResult(s.name,r.date,r.exercise)}>❌</button>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{marginTop:"10px"}}>
+                    <button onClick={()=>exportPDF(s)}>📄 Export PDF</button>
+                    <button onClick={()=>exportExcel(s)}>📊 Export Excel</button>
+                  </div>
+                  <div style={{marginTop:"10px"}}>
+                    <Line data={chartData(s)} />
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* --- TAB: Input Nilai --- */}
+      {tab==="input" && (
+        <div>
+          <h2>Input Nilai</h2>
+          <label>Pilih Siswa: </label>
+          <select value={selectedStudent} onChange={e=>setSelectedStudent(e.target.value)}>
+            <option value="">--Pilih--</option>
+            {students.map(s=><option key={s.name} value={s.name}>{s.name}</option>)}
+          </select>
+          {selectedStudent && (
+            <div>
+              {Object.keys(targetData[students.find(s=>s.name===selectedStudent).age]).map(ex=>(
+                <div key={ex}>
+                  <label>{ex} (Target: {targetData[students.find(s=>s.name===selectedStudent).age][ex]}): </label>
+                  <input type="number" value={inputValues[ex]||""} onChange={e=>handleInput(ex,e.target.value)} />
+                </div>
+              ))}
+              <button onClick={saveResults}>💾 Simpan</button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* --- TAB: Manage Siswa --- */}
+      {tab==="manage" && (
+        <div>
+          <h2>Tambah / Hapus Siswa</h2>
+          <div>
+            <input placeholder="Nama Siswa" value={newStudentName} onChange={e=>setNewStudentName(e.target.value)} />
+            <select value={newStudentAge} onChange={e=>setNewStudentAge(e.target.value)}>
+              {ageGroups.map(a=><option key={a} value={a}>{a}</option>)}
+            </select>
+            <button onClick={addStudent}>➕ Tambah</button>
+          </div>
+          <div style={{marginTop:"15px"}}>
+            <h3>Daftar Siswa:</h3>
+            {students.map(s=>(
+              <div key={s.name}>
+                {s.name} ({s.age}) <button onClick={()=>deleteStudent(s.name)}>❌ Hapus</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        .tabs { display:flex; gap:10px; margin-bottom:15px; }
+        .tab { padding:5px 10px; border:1px solid #ccc; cursor:pointer; border-radius:5px; }
+        .tab.active { background:#4CAF50; color:white; border-color:#4CAF50; }
+        .card { border:1px solid #ccc; border-radius:5px; padding:10px; margin-bottom:10px; }
+        button { margin-left:5px; }
+      `}</style>
+    </div>
+  );
+        }
