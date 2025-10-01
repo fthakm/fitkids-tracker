@@ -25,6 +25,14 @@ const targetData = {
   "16+": { "Yo-Yo Test Lvl 17": 0, PushUp: 45, SitUp: 50, "Jump Squat": 45, Skipping: 225 },
 };
 
+const style = `
+  .tabs { display:flex; gap:10px; margin-bottom:15px; }
+  .tab { padding:5px 10px; border:1px solid #ccc; cursor:pointer; border-radius:5px; }
+  .tab.active { background:#4CAF50; color:white; border-color:#4CAF50; }
+  .card { border:1px solid #ccc; border-radius:5px; padding:10px; margin-bottom:10px; }
+  button { margin-left:5px; }
+`;
+
 export default function App() {
   const [tab, setTab] = useState("dashboard");
   const [students, setStudents] = useState([]);
@@ -37,7 +45,6 @@ export default function App() {
 
   const addStudent = () => {
     if (!newStudentName) return;
-    // Cek duplikasi nama
     if (students.some(s => s.name === newStudentName)) {
       alert("Nama siswa sudah terdaftar!");
       return;
@@ -101,7 +108,6 @@ export default function App() {
     ]
   });
 
-  // --- Render Tabs --- //
   return (
     <div style={{ padding: "15px" }}>
       <h1>📊 FitKids Tracker</h1>
@@ -145,7 +151,7 @@ export default function App() {
           <h2>Leaderboard</h2>
           <ol>
             {students
-              .slice() // copy array supaya sort tidak mengubah state asli
+              .slice()
               .sort((a, b) =>
                 b.results.filter(r => r.value >= r.target).length -
                 a.results.filter(r => r.value >= r.target).length
@@ -216,13 +222,7 @@ export default function App() {
         </div>
       )}
 
-      <style>{`
-        .tabs { display:flex; gap:10px; margin-bottom:15px; }
-        .tab { padding:5px 10px; border:1px solid #ccc; cursor:pointer; border-radius:5px; }
-        .tab.active { background:#4CAF50; color:white; border-color:#4CAF50; }
-        .card { border:1px solid #ccc; border-radius:5px; padding:10px; margin-bottom:10px; }
-        button { margin-left:5px; }
-      `}</style>
+      <style>{style}</style>
     </div>
   );
 }
