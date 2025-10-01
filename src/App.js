@@ -163,42 +163,35 @@ export default function App() {
       )}
 
       {/* --- TAB: List Siswa --- */}
-      {tab === "list" && (
-        <div>
-          <h2>List Siswa Berdasarkan Usia</h2>
-          <label>Filter Usia: </label>
-          <select value={selectedAgeFilter} onChange={e => setSelectedAgeFilter(e.target.value)}>
-            {ageGroups.map(a => <option key={a} value={a}>{a}</option>)}
-          </select>
-          {students.filter(s => s.age === selectedAgeFilter).map(s => (
-            <div key={s.name} className="card">
-              <h3 onClick={() => setSelectedStudent(s.name)} style={{ cursor: "pointer" }}>
-                {s.name} - Badge: {s.badge || "-"}
-              </h3>
-              {selectedStudent === s.name && (
-                <div>
-                  <h4>Overview:</h4>
-                  <div>
-                    {s.results.length === 0 ? "Belum ada hasil" : s.results.map(r => (
-                      <div key={r.date + "-" + r.exercise}>
-                        {r.date} | {r.exercise}: {r.value} (Target: {r.target})
-                        <button onClick={() => deleteResult(s.name, r.date, r.exercise)}>❌</button>
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{ marginTop: "10px" }}>
-                    <button onClick={() => exportPDF(s)}>📄 Export PDF</button>
-                    <button onClick={() => exportExcel(s)}>📊 Export Excel</button>
-                  </div>
-                  <div style={{ marginTop: "10px" }}>
-                    <Line data={chartData(s)} />
-                  </div>
-                </div>
-              )}
+{tab==="list" && (
+  <div>
+    <h2>List Siswa Berdasarkan Usia</h2>
+    <label>Filter Usia: </label>
+    <select value={selectedAgeFilter} onChange={e=>setSelectedAgeFilter(e.target.value)}>
+      {ageGroups.map(a=><option key={a} value={a}>{a}</option>)}
+    </select>
+
+    {students
+      .filter(s => s.age === selectedAgeFilter)
+      .map(s => (
+        <div key={s.name} className="card">
+          <h3 onClick={()=>setSelectedStudent(s.name)} style={{cursor:"pointer"}}>
+            {s.name} ({s.age}) - Badge: {s.badge||"-"}
+          </h3>
+          {selectedStudent === s.name && (
+            <div>
+              <p>Catatan: {s.notes || "-"}</p>
+              <button onClick={()=>exportPDF(s)}>Export PDF</button>
+              <button onClick={()=>exportExcel(s)}>Export Excel</button>
+              <button onClick={()=>deleteStudent(s.name)}>❌ Hapus Siswa</button>
+              <Line data={chartData(s)} />
             </div>
-          ))}
+          )}
         </div>
-      )}
+      ))
+    }
+  </div>
+)}
 
       {/* --- TAB: Manage Siswa --- */}
       {tab === "manage" && (
