@@ -7,8 +7,8 @@ export const exportPDF = (student) => {
   doc.text(`Laporan Latihan - ${student.name}`, 14, 20);
   doc.text(`Usia: ${student.age}`, 14, 30);
   doc.text(`Badge: ${student.badge || "-"}`, 14, 40);
-  const rows = student.results.map(r=>[r.date, r.exercise, r.target, r.value, r.value>=r.target?"✔":"❌"]);
-  doc.autoTable({ head:[["Tanggal","Latihan","Target","Hasil","Status"]], body:rows, startY:50 });
+  const rows = student.results.map(r => [r.date, r.exercise, r.target, r.value, r.value >= r.target ? "✔" : "❌"]);
+  doc.autoTable({ head: [["Tanggal", "Latihan", "Target", "Hasil", "Status"]], body: rows, startY: 50 });
   doc.save(`laporan_${student.name}.pdf`);
 };
 
