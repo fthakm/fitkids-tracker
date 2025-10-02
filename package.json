@@ -3,21 +3,33 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^5.18.0",
+    "@mui/material": "^5.18.0",
+    "chart.js": "^4.3.0",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.5.28",
+    "react": "^18.2.0",
     "react-chartjs-2": "^5.2.0",
-    "chart.js": "^4.3.0",
-    "xlsx": "^0.18.5",
-    "@mui/material": "^5.15.0",
-    "@mui/icons-material": "^5.15.0",
-    "@emotion/react": "^11.11.0",
-    "@emotion/styled": "^11.11.0"
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }
