@@ -1,25 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Box, Typography } from "@mui/material";
-import { fetchStudents } from "../services/studentService";
 
-export default function Leaderboard() {
-  const [students, setStudents] = useState([]);
-
-  useEffect(() => { fetchStudents().then(setStudents); }, []);
-
-  const sorted = [...students].sort((a, b) => {
-    const aScore = a.results?.filter(r => r.value >= r.target).length || 0;
-    const bScore = b.results?.filter(r => r.value >= r.target).length || 0;
-    return bScore - aScore;
-  });
+export default function Leaderboard({ students }) {
+  const leaderboard = [...students].sort(
+    (a, b) =>
+      b.results?.filter(r => r.value >= r.target).length - a.results?.filter(r => r.value >= r.target).length
+  );
 
   return (
     <Box mt={3}>
-      <Typography variant="h5">Leaderboard</Typography>
+      <Typography variant="h5" gutterBottom>Leaderboard</Typography>
       <ol>
-        {sorted.map(s => (
-          <li key={s.id}>{s.name} ({s.age_group}) - ✔ {s.results?.filter(r => r.value >= r.target).length || 0} latihan
-            {s.results?.every(r => r.value >= r.target) && " 🏅"}
+        {leaderboard.map((s) => (
+          <li key={s.id || s.name}>
+            <strong>{s.name}</strong> ({s.age}) - ✔ {s.results?.filter(r => r.value >= r.target).length} latihan memenuhi target
           </li>
         ))}
       </ol>
