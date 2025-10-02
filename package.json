@@ -7,6 +7,7 @@
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^5.18.0",
     "@mui/material": "^5.18.0",
+    "@mui/x-data-grid": "^8.13.1",
     "chart.js": "^4.3.0",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.5.28",
