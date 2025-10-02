@@ -20,7 +20,7 @@ export const getStudents = async () => {
   }
 };
 
-// Simpan atau update siswa
+// Simpan siswa baru atau update siswa
 export const saveStudent = async (student) => {
   try {
     const { data, error } = await supabase
@@ -33,6 +33,9 @@ export const saveStudent = async (student) => {
     return null;
   }
 };
+
+// Alias supaya bisa dipanggil updateStudent
+export const updateStudent = saveStudent;
 
 // Hapus siswa
 export const deleteStudent = async (id) => {
@@ -75,7 +78,7 @@ export const getResults = async (studentId) => {
   }
 };
 
-// Contoh fungsi tambahan: ambil leaderboard
+// Ambil leaderboard
 export const getLeaderboard = async () => {
   try {
     const { data, error } = await supabase
