@@ -222,7 +222,7 @@ export default function App() {
             <DataGrid
               rows={students.filter(s => s.age === filterAge).map((s, i) => ({ ...s, id: i + 1 }))}
               columns={[
-                { field see: "name", headerName: "Nama", width: 180 },
+                { field: "name", headerName: "Nama", width: 180 },
                 { field: "badge", headerName: "Badge", width: 90 },
                 { field: "notes", headerName: "Catatan", width: 160 },
                 {
