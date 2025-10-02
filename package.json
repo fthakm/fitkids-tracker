@@ -10,7 +10,11 @@
     "jspdf-autotable": "^3.5.28",
     "react-chartjs-2": "^5.2.0",
     "chart.js": "^4.3.0",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "@mui/material": "^5.15.0",
+    "@mui/icons-material": "^5.15.0",
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0"
   },
   "scripts": {
     "start": "react-scripts start",
