@@ -1,70 +1,95 @@
-// src/App.js
-import React, { useState, useEffect } from "react";
-import { AppBar, Toolbar, Typography, Tabs, Tab, Container, Box, Paper, Snackbar, Alert, Select, MenuItem } from "@mui/material";
-
-import Dashboard from "./components/Dashboard";
-import Leaderboard from "./components/Leaderboard";
-import StudentList from "./components/StudentList";
-
+import React, { useEffect, useState } from "react";
+import { Box, AppBar, Toolbar, Typography, Tabs, Tab, Container, Paper, Button, Snackbar, Alert, Select, MenuItem, IconButton } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { getStudents, saveStudent, updateStudent, deleteStudent, getResultsByStudent, saveResults } from "./services/studentService";
 import AddEditStudentDialog from "./dialogs/AddEditStudentDialog";
 import InputResultsDialog from "./dialogs/InputResultsDialog";
-
-import { getStudents, saveStudent, deleteStudent, saveResults } from "./services/studentService";
-
-const ageGroups = ["6-8", "9-11", "12-15", "16+"];
+import StudentList from "./components/StudentList";
+import Dashboard from "./components/Dashboard";
+import Leaderboard from "./components/Leaderboard";
 
 export default function App() {
   const [tab, setTab] = useState(0);
   const [students, setStudents] = useState([]);
-  const [filterAge, setFilterAge] = useState(ageGroups[0]);
-  const [selectedStudent, setSelectedStudent] = useState(null);
   const [openAddEdit, setOpenAddEdit] = useState(false);
-  const [openInputResults, setOpenInputResults] = useState(false);
+  const [editingStudent, setEditingStudent] = useState(null);
+  const [openInput, setOpenInput] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [filterAge, setFilterAge] = useState("");
 
-  useEffect(() => {
-    const fetch = async () => {
+  const fetchStudents = async () => {
+    try {
       const data = await getStudents();
       setStudents(data);
-    };
-    fetch();
+    } catch (err) {
+      console.error(err);
+      setSnackbar({ open: true, message: "Gagal memuat siswa", severity: "error" });
+    }
+  };
+
+  useEffect(() => {
+    fetchStudents();
   }, []);
 
   const handleAddEditStudent = async (student, isEdit) => {
-    await saveStudent(student, isEdit);
-    const data = await getStudents();
-    setStudents(data);
-    setSnackbar({ open: true, message: isEdit ? "Data siswa diperbarui" : "Siswa ditambahkan", severity: "success" });
-    setOpenAddEdit(false);
+    try {
+      if (isEdit) {
+        await updateStudent(student.id, student);
+        setSnackbar({ open: true, message: "Siswa diperbarui", severity: "success" });
+      } else {
+        await saveStudent(student);
+        setSnackbar({ open: true, message: "Siswa ditambahkan", severity: "success" });
+      }
+      setOpenAddEdit(false);
+      fetchStudents();
+    } catch (err) {
+      console.error(err);
+      setSnackbar({ open: true, message: "Gagal menyimpan siswa", severity: "error" });
+    }
   };
 
-  const handleDeleteStudent = async (id) => {
+  const handleDelete = async (id) => {
     if (!window.confirm("Yakin ingin menghapus siswa ini?")) return;
-    await deleteStudent(id);
-    const data = await getStudents();
-    setStudents(data);
-    setSnackbar({ open: true, message: "Siswa dihapus", severity: "success" });
+    try {
+      await deleteStudent(id);
+      setSnackbar({ open: true, message: "Siswa dihapus", severity: "success" });
+      fetchStudents();
+    } catch (err) {
+      console.error(err);
+      setSnackbar({ open: true, message: "Gagal menghapus siswa", severity: "error" });
+    }
   };
 
-  const handleSaveResults = async (studentId, results) => {
-    await saveResults(studentId, results);
-    const data = await getStudents();
-    setStudents(data);
-    setSnackbar({ open: true, message: "Hasil latihan tersimpan", severity: "success" });
-    setOpenInputResults(false);
+  const handleOpenInput = (student) => {
+    setSelectedStudent(student);
+    setOpenInput(true);
   };
+
+  const handleSaveResults = async (results) => {
+    try {
+      await saveResults(results);
+      setSnackbar({ open: true, message: "Hasil latihan tersimpan", severity: "success" });
+      setOpenInput(false);
+      fetchStudents();
+    } catch (err) {
+      console.error(err);
+      setSnackbar({ open: true, message: "Gagal menyimpan hasil latihan", severity: "error" });
+    }
+  };
+
+  const filteredStudents = filterAge ? students.filter(s => s.age === filterAge) : students;
 
   return (
-    <Box sx={{ bgcolor: "#f7f9fa", minHeight: "100vh" }}>
-      <AppBar position="static" color="primary">
+    <Box sx={{ minHeight: "100vh", bgcolor: "#f7f9fa" }}>
+      <AppBar position="static">
         <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 700 }}>
-            FitKids Tracker
-          </Typography>
+          <Typography variant="h6" sx={{ flexGrow: 1 }}>FitKids Tracker</Typography>
         </Toolbar>
       </AppBar>
-      <Container maxWidth="md" sx={{ mt: 3 }}>
-        <Paper elevation={2}>
+      <Container maxWidth="lg" sx={{ mt: 3 }}>
+        <Paper elevation={2} sx={{ borderRadius: 2 }}>
           <Tabs
             value={tab}
             onChange={(_, v) => setTab(v)}
@@ -80,15 +105,24 @@ export default function App() {
 
         {tab === 0 && <Dashboard students={students} />}
         {tab === 1 && (
-          <StudentList
-            students={students}
-            filterAge={filterAge}
-            setFilterAge={setFilterAge}
-            onAdd={() => setOpenAddEdit(true)}
-            onEdit={(s) => { setSelectedStudent(s); setOpenAddEdit(true); }}
-            onDelete={handleDeleteStudent}
-            onInputResults={(s) => { setSelectedStudent(s); setOpenInputResults(true); }}
-          />
+          <Box mt={3}>
+            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+              <Select value={filterAge} onChange={e => setFilterAge(e.target.value)} displayEmpty>
+                <MenuItem value="">Semua Usia</MenuItem>
+                <MenuItem value="6-8">6-8</MenuItem>
+                <MenuItem value="9-11">9-11</MenuItem>
+                <MenuItem value="12-15">12-15</MenuItem>
+                <MenuItem value="16+">16+</MenuItem>
+              </Select>
+              <Button variant="contained" startIcon={<AddIcon />} onClick={() => { setEditingStudent(null); setOpenAddEdit(true); }}>Tambah Siswa</Button>
+            </Box>
+            <StudentList
+              students={filteredStudents}
+              onEdit={student => { setEditingStudent(student); setOpenAddEdit(true); }}
+              onDelete={handleDelete}
+              onInput={handleOpenInput}
+            />
+          </Box>
         )}
         {tab === 2 && <Leaderboard students={students} />}
 
@@ -96,12 +130,11 @@ export default function App() {
           open={openAddEdit}
           onClose={() => setOpenAddEdit(false)}
           onSave={handleAddEditStudent}
-          student={selectedStudent}
+          student={editingStudent}
         />
-
         <InputResultsDialog
-          open={openInputResults}
-          onClose={() => setOpenInputResults(false)}
+          open={openInput}
+          onClose={() => setOpenInput(false)}
           student={selectedStudent}
           onSave={handleSaveResults}
         />
@@ -112,11 +145,9 @@ export default function App() {
           onClose={() => setSnackbar({ ...snackbar, open: false })}
           anchorOrigin={{ vertical: "top", horizontal: "center" }}
         >
-          <Alert severity={snackbar.severity} sx={{ width: "100%" }}>
-            {snackbar.message}
-          </Alert>
+          <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
         </Snackbar>
       </Container>
     </Box>
   );
-  }
+          }
