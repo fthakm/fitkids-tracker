@@ -1,35 +1,43 @@
-const STORAGE_KEY = "fitkids-students";
+import { supabase } from "./supabaseClient";
 
-export const getStudents = () => {
-  const data = localStorage.getItem(STORAGE_KEY);
-  return data ? JSON.parse(data) : [];
+const TABLE = "students";
+
+// Get all students
+export const getStudents = async () => {
+  const { data, error } = await supabase.from(TABLE).select("*");
+  if (error) throw error;
+  return data;
 };
 
-export const addStudent = (student) => {
-  const students = getStudents();
-  students.push({...student, results:[], badge:""});
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
+// Add a student
+export const addStudent = async (student) => {
+  const { data, error } = await supabase.from(TABLE).insert([{ ...student, results: [], badge: "" }]);
+  if (error) throw error;
+  return data;
 };
 
-export const updateStudent = (student) => {
-  const students = getStudents().map(s=>s.name===student.name?student:s);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
+// Update a student
+export const updateStudent = async (student) => {
+  const { data, error } = await supabase.from(TABLE).update(student).eq("name", student.name);
+  if (error) throw error;
+  return data;
 };
 
-export const deleteStudent = (name) => {
-  const students = getStudents().filter(s=>s.name!==name);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
+// Delete a student
+export const deleteStudent = async (name) => {
+  const { data, error } = await supabase.from(TABLE).delete().eq("name", name);
+  if (error) throw error;
+  return data;
 };
 
-export const saveStudentResults = (name, resultsInput, targetData) => {
+// Save student results
+export const saveStudentResults = async (name, resultsInput, targetData) => {
   const date = new Date().toISOString().split("T")[0];
-  const students = getStudents().map(s=>{
-    if(s.name !== name) return s;
-    const results = Object.keys(resultsInput).map(ex=>({
-      date, exercise: ex, target: targetData[ex], value: Number(resultsInput[ex])
-    }));
-    const badge = results.every(r=>r.value>=r.target) ? "✔" : "❌";
-    return {...s, results: [...s.results, ...results], badge};
-  });
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
+  const { data: students } = await supabase.from(TABLE).select("*").eq("name", name).single();
+  const results = Object.keys(resultsInput).map(ex => ({
+    date, exercise: ex, target: targetData[ex], value: Number(resultsInput[ex])
+  }));
+  const badge = results.every(r => r.value >= r.target) ? "✔" : "❌";
+  const updatedResults = [...students.results, ...results];
+  await supabase.from(TABLE).update({ results: updatedResults, badge }).eq("name", name);
 };
