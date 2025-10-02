@@ -8,6 +8,7 @@ import InputResultsDialog from "./dialogs/InputResultsDialog";
 import StudentList from "./components/StudentList";
 import Dashboard from "./components/Dashboard";
 import Leaderboard from "./components/Leaderboard";
+import studentService from './services/studentService';
 
 export default function App() {
   const [tab, setTab] = useState(0);
