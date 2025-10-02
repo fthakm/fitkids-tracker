@@ -1,46 +1,95 @@
-import { supabase } from './supabaseClient';
+// services/studentService.js
+import { createClient } from '@supabase/supabase-js';
 
-const TABLE = 'students';
+// --- Supabase stub (ganti URL & anon key dengan milikmu) ---
+const supabaseUrl = 'https://your-project.supabase.co';
+const supabaseKey = 'public-anon-key';
+export const supabase = createClient(supabaseUrl, supabaseKey);
 
-// CRUD Siswa
+// --- Fungsi CRUD ---
+
+// Ambil semua siswa
 export const getStudents = async () => {
-  const { data, error } = await supabase.from(TABLE).select('*');
-  if (error) throw error;
-  return data;
+  try {
+    const { data, error } = await supabase.from('students').select('*');
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.error('getStudents error:', err);
+    return [];
+  }
 };
 
-export const addStudent = async (student) => {
-  const { data, error } = await supabase.from(TABLE).insert([student]);
-  if (error) throw error;
-  return data;
+// Simpan atau update siswa
+export const saveStudent = async (student) => {
+  try {
+    const { data, error } = await supabase
+      .from('students')
+      .upsert(student, { onConflict: 'id' }); // asumsi ada id
+    if (error) throw error;
+    return data;
+  } catch (err) {
+    console.error('saveStudent error:', err);
+    return null;
+  }
 };
 
-export const updateStudent = async (id, updates) => {
-  const { data, error } = await supabase.from(TABLE).update(updates).eq('id', id);
-  if (error) throw error;
-  return data;
-};
-
+// Hapus siswa
 export const deleteStudent = async (id) => {
-  const { error } = await supabase.from(TABLE).delete().eq('id', id);
-  if (error) throw error;
-  return true;
+  try {
+    const { data, error } = await supabase.from('students').delete().eq('id', id);
+    if (error) throw error;
+    return data;
+  } catch (err) {
+    console.error('deleteStudent error:', err);
+    return null;
+  }
 };
 
-// Input Hasil Latihan
-export const addResults = async (studentId, results) => {
-  const { data, error } = await supabase
-    .from('results')
-    .insert(results.map(r => ({ ...r, student_id: studentId })));
-  if (error) throw error;
-  return data;
+// Input hasil latihan siswa
+export const saveResults = async (studentId, results) => {
+  try {
+    const { data, error } = await supabase
+      .from('results')
+      .upsert(results.map(r => ({ student_id: studentId, ...r })));
+    if (error) throw error;
+    return data;
+  } catch (err) {
+    console.error('saveResults error:', err);
+    return null;
+  }
 };
 
+// Ambil hasil latihan siswa
 export const getResults = async (studentId) => {
-  const { data, error } = await supabase
-    .from('results')
-    .select('*')
-    .eq('student_id', studentId);
-  if (error) throw error;
-  return data;
+  try {
+    const { data, error } = await supabase
+      .from('results')
+      .select('*')
+      .eq('student_id', studentId);
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.error('getResults error:', err);
+    return [];
+  }
+};
+
+// Contoh fungsi tambahan: ambil leaderboard
+export const getLeaderboard = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('students')
+      .select('id,name,age,badge,results');
+    if (error) throw error;
+    // hitung jumlah latihan tercapai per siswa
+    return (data || []).sort((a,b) => {
+      const aDone = (a.results || []).filter(r => r.value >= r.target).length;
+      const bDone = (b.results || []).filter(r => r.value >= r.target).length;
+      return bDone - aDone;
+    });
+  } catch (err) {
+    console.error('getLeaderboard error:', err);
+    return [];
+  }
 };
