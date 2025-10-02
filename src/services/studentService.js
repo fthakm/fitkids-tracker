@@ -1,30 +1,40 @@
-// studentService.js
-import { supabase } from "./supabaseClient";
+// src/services/studentService.js
+import { supabase } from "../supabaseClient";
 
-// Ambil semua data siswa
-export const getStudents = async () => {
+export async function getStudents() {
   const { data, error } = await supabase.from("students").select("*");
   if (error) throw error;
   return data;
-};
+}
 
-// Simpan data siswa baru
-export const saveStudent = async (student) => {
-  const { data, error } = await supabase.from("students").insert([student]);
+export async function saveStudent(student) {
+  const { error } = await supabase.from("students").insert([student]);
+  if (error) throw error;
+}
+
+export async function updateStudent(id, student) {
+  const { error } = await supabase
+    .from("students")
+    .update(student)
+    .eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteStudent(id) {
+  const { error } = await supabase.from("students").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function getResultsByStudent(studentId) {
+  const { data, error } = await supabase
+    .from("results")
+    .select("*")
+    .eq("student_id", studentId);
   if (error) throw error;
   return data;
-};
+}
 
-// Hapus siswa berdasarkan id
-export const deleteStudent = async (id) => {
-  const { data, error } = await supabase.from("students").delete().eq("id", id);
+export async function saveResults(results) {
+  const { error } = await supabase.from("results").insert([results]);
   if (error) throw error;
-  return data;
-};
-
-// Ambil data siswa berdasarkan id
-export const getStudentById = async (id) => {
-  const { data, error } = await supabase.from("students").select("*").eq("id", id).single();
-  if (error) throw error;
-  return data;
-};
+}
