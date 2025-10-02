@@ -1,74 +1,55 @@
-import React, { useState, useEffect } from "react";
-import { Box, Button, Select, MenuItem, Paper, Typography, IconButton } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import AddEditStudentDialog from "./dialogs/AddEditStudentDialog";
-import { fetchStudents, deleteStudent } from "../services/studentService";
+import React, { useState } from "react";
+import { Box, Button, Select, MenuItem, Typography } from "@mui/material";
+import StudentDetail from "./StudentDetail";
+import AddEditStudentDialog from "../dialogs/AddEditStudentDialog";
 
-const ageGroups = ["6-8", "9-11", "12-15", "16+"];
+export default function StudentList({ students, setStudents, showSnackbar }) {
+  const [filterAge, setFilterAge] = useState("6-8");
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [openAddEdit, setOpenAddEdit] = useState(false);
 
-export default function StudentList({ onSelectStudent }) {
-  const [students, setStudents] = useState([]);
-  const [filterAge, setFilterAge] = useState(ageGroups[0]);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [editStudent, setEditStudent] = useState(null);
-
-  useEffect(() => { fetchStudents().then(setStudents); }, []);
-
-  const handleDelete = async (id) => {
-    if (window.confirm("Yakin hapus siswa ini?")) {
-      await deleteStudent(id);
-      setStudents(students.filter(s => s.id !== id));
-    }
-  };
-
-  const handleSave = (updated) => {
-    const exists = students.find(s => s.id === updated.id);
-    if (exists) {
-      setStudents(students.map(s => s.id === updated.id ? updated : s));
-    } else {
-      setStudents([...students, updated]);
-    }
-    setOpenDialog(false);
+  const handleAdd = () => {
+    setSelectedStudent(null);
+    setOpenAddEdit(true);
   };
 
   return (
     <Box mt={3}>
-      <Box display="flex" justifyContent="space-between" mb={2}>
-        <Typography variant="h5">Daftar Siswa</Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpenDialog(true)}>Tambah Siswa</Button>
-      </Box>
-      <Box mb={2}>
+      <Box mb={2} display="flex" justifyContent="space-between">
         <Select value={filterAge} onChange={e => setFilterAge(e.target.value)}>
-          {ageGroups.map(a => <MenuItem key={a} value={a}>{a}</MenuItem>)}
+          <MenuItem value="6-8">6-8</MenuItem>
+          <MenuItem value="9-11">9-11</MenuItem>
+          <MenuItem value="12-15">12-15</MenuItem>
+          <MenuItem value="16+">16+</MenuItem>
         </Select>
+        <Button variant="contained" onClick={handleAdd}>Tambah Siswa</Button>
       </Box>
-      <Paper sx={{ p: 2, borderRadius: 2 }}>
-        <DataGrid
-          rows={students.filter(s => s.age_group === filterAge)}
-          columns={[
-            { field: "name", headerName: "Nama", flex: 1 },
-            { field: "age_group", headerName: "Usia", width: 100 },
-            { field: "gender", headerName: "JK", width: 80 },
-            { field: "address", headerName: "Alamat", flex: 1 },
-            { field: "action", headerName: "Aksi", width: 180, renderCell: (params) => (
-              <>
-                <IconButton color="primary" onClick={() => onSelectStudent(params.row)}><VisibilityIcon /></IconButton>
-                <IconButton color="info" onClick={() => { setEditStudent(params.row); setOpenDialog(true); }}><EditIcon /></IconButton>
-                <IconButton color="error" onClick={() => handleDelete(params.row.id)}><DeleteIcon /></IconButton>
-              </>
-            )}
-          ]}
-          autoHeight
-          pageSize={5}
-          rowsPerPageOptions={[5]}
-          disableSelectionOnClick
+
+      {students.filter(s => s.age === filterAge).map((s) => (
+        <Typography key={s.id || s.name} sx={{ cursor: "pointer", mb: 1 }} onClick={() => setSelectedStudent(s)}>
+          {s.name}
+        </Typography>
+      ))}
+
+      {openAddEdit && (
+        <AddEditStudentDialog
+          open={openAddEdit}
+          onClose={() => setOpenAddEdit(false)}
+          students={students}
+          setStudents={setStudents}
+          student={selectedStudent}
+          showSnackbar={showSnackbar}
         />
-      </Paper>
-      <AddEditStudentDialog open={openDialog} onClose={() => { setOpenDialog(false); setEditStudent(null); }} student={editStudent} onSave={handleSave} />
+      )}
+
+      {selectedStudent && (
+        <StudentDetail
+          student={selectedStudent}
+          setStudents={setStudents}
+          showSnackbar={showSnackbar}
+          onClose={() => setSelectedStudent(null)}
+        />
+      )}
     </Box>
   );
 }
