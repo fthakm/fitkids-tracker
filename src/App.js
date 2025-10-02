@@ -19,10 +19,31 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 const ageGroups = ["6-8","9-11","12-15","16+"];
 
 const targetData = {
-  "6-8": { Skipping: 120, "Jump Squat": 35, "Shuttle Run 4x10": 11 },
-  "9-11": { Skipping: 160, "Jump Squat": 40, "Shuttle Run 6x10": 15, "Sprint 20m": 5 },
-  "12-15": { "Yo-Yo Test Lvl 15": 0, PushUp: 40, SitUp: 40, "Jump Squat": 30, Skipping: 190 },
-  "16+": { "Yo-Yo Test Lvl 17": 0, PushUp: 45, SitUp: 50, "Jump Squat": 45, Skipping: 225 },
+  "6-8": {
+    Skipping: 120,
+    "Jump Squat": 35,
+    "Shuttle Run 4x10": 11
+  },
+  "9-11": {
+    Skipping: 160,
+    "Jump Squat": 40,
+    "Shuttle Run 6x10": 15,
+    "Sprint 20m": 5
+  },
+  "12-15": {
+    "Yo-Yo Test Lvl 15": 0,
+    PushUp: 40,
+    SitUp: 40,
+    "Jump Squat": 30,
+    Skipping: 190
+  },
+  "16+": {
+    "Yo-Yo Test Lvl 17": 0,
+    PushUp: 45,
+    SitUp: 50,
+    "Jump Squat": 45,
+    Skipping: 225
+  }
 };
 
 export default function App() {
