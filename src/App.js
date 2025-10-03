@@ -82,72 +82,8 @@ export default function App() {
   const filteredStudents = filterAge ? students.filter(s => s.age === filterAge) : students;
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#f7f9fa" }}>
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>FitKids Tracker</Typography>
-        </Toolbar>
-      </AppBar>
-      <Container maxWidth="lg" sx={{ mt: 3 }}>
-        <Paper elevation={2} sx={{ borderRadius: 2 }}>
-          <Tabs
-            value={tab}
-            onChange={(_, v) => setTab(v)}
-            indicatorColor="primary"
-            textColor="primary"
-            variant="fullWidth"
-          >
-            <Tab label="Dashboard" />
-            <Tab label="Siswa" />
-            <Tab label="Leaderboard" />
-          </Tabs>
-        </Paper>
-
-        {tab === 0 && <Dashboard students={students} />}
-        {tab === 1 && (
-          <Box mt={3}>
-            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-              <Select value={filterAge} onChange={e => setFilterAge(e.target.value)} displayEmpty>
-                <MenuItem value="">Semua Usia</MenuItem>
-                <MenuItem value="6-8">6-8</MenuItem>
-                <MenuItem value="9-11">9-11</MenuItem>
-                <MenuItem value="12-15">12-15</MenuItem>
-                <MenuItem value="16+">16+</MenuItem>
-              </Select>
-              <Button variant="contained" startIcon={<AddIcon />} onClick={() => { setEditingStudent(null); setOpenAddEdit(true); }}>Tambah Siswa</Button>
-            </Box>
-            <StudentList
-              students={filteredStudents}
-              onEdit={student => { setEditingStudent(student); setOpenAddEdit(true); }}
-              onDelete={handleDelete}
-              onInput={handleOpenInput}
-            />
-          </Box>
-        )}
-        {tab === 2 && <Leaderboard students={students} />}
-
-        <AddEditStudentDialog
-          open={openAddEdit}
-          onClose={() => setOpenAddEdit(false)}
-          onSave={handleAddEditStudent}
-          student={editingStudent}
-        />
-        <InputResultsDialog
-          open={openInput}
-          onClose={() => setOpenInput(false)}
-          student={selectedStudent}
-          onSave={handleSaveResults}
-        />
-
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={2500}
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        >
-          <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
-        </Snackbar>
-      </Container>
-    </Box>
-  );
+  <h1 style={{ textAlign: "center", marginTop: "50px" }}>
+    Test Render Jalan 🚀
+  </h1>
+);
           }
