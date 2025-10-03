@@ -1,111 +1,97 @@
-import { useEffect, useState } from "react";
-import { getEvaluationsByStudent } from "@/services/evaluationService";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Tooltip, ResponsiveContainer,
-} from "recharts";
+// components/EvaluationDetail.js
+import React from "react";
+import { Paper, Typography, Box, Table, TableHead, TableRow, TableCell, TableBody } from "@mui/material";
+import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip, Legend } from "recharts";
+import { evaluationCriteria } from "../data/evaluationCriteria";
+import { classifyScore } from "../utils/evaluationHelpers";
 
-export default function EvaluationDetail({ student }) {
-  const [evaluations, setEvaluations] = useState([]);
-
-  useEffect(() => {
-    if (student?.id) {
-      loadData();
-    }
-    async function loadData() {
-      const data = await getEvaluationsByStudent(student.id);
-      setEvaluations(data);
-    }
-  }, [student]);
-
-  if (!student) {
+export default function EvaluationDetail({ evaluation }) {
+  if (!evaluation) {
     return (
-      <Card className="p-4">
-        <CardContent>Belum ada siswa dipilih</CardContent>
-      </Card>
+      <Paper sx={{ p: 3 }}>
+        <Typography variant="body1">Pilih evaluasi untuk melihat detail</Typography>
+      </Paper>
     );
   }
 
-  if (evaluations.length === 0) {
-    return (
-      <Card className="p-4">
-        <CardContent>Belum ada evaluasi untuk {student.name}</CardContent>
-      </Card>
-    );
-  }
+  const { ageGroup, results = [] } = evaluation;
+  const criteria = evaluationCriteria[ageGroup] || [];
 
-  // ambil evaluasi terakhir
-  const latest = evaluations[0];
-  const chartData = latest.results.map((r) => ({
-    subject: r.test,
-    value: mapToNumeric(r.label),
-  }));
+  // transform data ke format untuk RadarChart
+  const radarData = criteria.map((c) => {
+    const res = results.find((r) => r.test === c.test);
+    const score = res?.score ?? 0;
+    const label = classifyScore(score, c.ranges);
+
+    return {
+      subject: c.category,
+      skor: score,
+      level: label,
+      fullMark: 100, // opsional: biar sumbu normal
+    };
+  });
 
   return (
-    <Card className="p-4">
-      <h2 className="text-xl font-bold mb-2">Evaluasi Terbaru: {student.name}</h2>
-      <p className="text-sm text-gray-500 mb-4">Tanggal: {latest.date}</p>
+    <Paper sx={{ p: 3 }}>
+      <Typography variant="h6" gutterBottom>
+        Detail Evaluasi - {evaluation.date}
+      </Typography>
 
-      <div className="h-96">
-        <ResponsiveContainer width="100%" height="100%">
-          <RadarChart outerRadius="80%" data={chartData}>
-            <PolarGrid />
-            <PolarAngleAxis dataKey="subject" />
-            <PolarRadiusAxis domain={[0, 3]} tickFormatter={mapBackLabel} />
-            <Tooltip formatter={(val) => mapBackLabel(val)} />
-            <Radar
-              name="Evaluasi"
-              dataKey="value"
-              stroke="#8884d8"
-              fill="#8884d8"
-              fillOpacity={0.6}
-            />
-          </RadarChart>
-        </ResponsiveContainer>
-      </div>
+      {/* Radar Chart */}
+      <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
+        <RadarChart
+          cx={250}
+          cy={200}
+          outerRadius={150}
+          width={500}
+          height={400}
+          data={radarData}
+        >
+          <PolarGrid />
+          <PolarAngleAxis dataKey="subject" />
+          <PolarRadiusAxis />
+          <Radar
+            name="Skor Siswa"
+            dataKey="skor"
+            stroke="#8884d8"
+            fill="#8884d8"
+            fillOpacity={0.6}
+          />
+          <Tooltip />
+          <Legend />
+        </RadarChart>
+      </Box>
 
-      <div className="mt-6">
-        <h3 className="font-semibold mb-2">Detail Hasil</h3>
-        <table className="w-full border text-sm">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="border p-2">Kategori</th>
-              <th className="border p-2">Tes</th>
-              <th className="border p-2">Nilai</th>
-              <th className="border p-2">Predikat</th>
-            </tr>
-          </thead>
-          <tbody>
-            {latest.results.map((r, i) => (
-              <tr key={i}>
-                <td className="border p-2">{r.category}</td>
-                <td className="border p-2">{r.test}</td>
-                <td className="border p-2">{r.value}</td>
-                <td className="border p-2 font-semibold">{r.label}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </Card>
+      {/* Tabel Detail */}
+      <Typography variant="subtitle1" gutterBottom>
+        Rincian Tes
+      </Typography>
+      <Table size="small">
+        <TableHead>
+          <TableRow>
+            <TableCell>Kategori</TableCell>
+            <TableCell>Tes</TableCell>
+            <TableCell>Skor</TableCell>
+            <TableCell>Hasil</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {criteria.map((c, idx) => {
+            const res = results.find((r) => r.test === c.test);
+            const score = res?.score ?? "-";
+            const label = score !== "-" ? classifyScore(score, c.ranges) : "-";
+
+            return (
+              <TableRow key={idx}>
+                <TableCell>{c.category}</TableCell>
+                <TableCell>{c.test}</TableCell>
+                <TableCell>{score}</TableCell>
+                <TableCell>{label}</TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </Paper>
   );
-}
-
-// 🔹 helper utk Radar Chart mapping
-function mapToNumeric(label) {
-  switch (label) {
-    case "Kurang": return 1;
-    case "Baik": return 2;
-    case "Sangat Baik": return 3;
-    default: return 0;
-  }
-}
-
-function mapBackLabel(val) {
-  switch (val) {
-    case 1: return "Kurang";
-    case 2: return "Baik";
-    case 3: return "Sangat Baik";
-    default: return "";
-  }
 }
