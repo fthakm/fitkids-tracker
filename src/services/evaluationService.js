@@ -14,7 +14,7 @@ export async function getEvaluations() {
   return data || [];
 }
 
-// Tambah evaluasi baru (biasanya cuma tanggal dulu)
+// Tambah evaluasi baru
 export async function addEvaluation(evaluation) {
   const { data, error } = await supabase
     .from("evaluations")
@@ -29,7 +29,7 @@ export async function addEvaluation(evaluation) {
   return data;
 }
 
-// Update evaluasi (misalnya tambah hasil siswa)
+// Update evaluasi
 export async function updateEvaluation(id, updates) {
   const { data, error } = await supabase
     .from("evaluations")
@@ -43,4 +43,19 @@ export async function updateEvaluation(id, updates) {
     throw error;
   }
   return data;
+}
+
+// 🆕 Ambil evaluasi berdasarkan siswa
+export async function getEvaluationsByStudent(studentId) {
+  const { data, error } = await supabase
+    .from("evaluations")
+    .select("*")
+    .eq("student_id", studentId) // cek nama kolom!
+    .order("date", { ascending: false });
+
+  if (error) {
+    console.error("Error getEvaluationsByStudent:", error);
+    throw error;
+  }
+  return data || [];
 }
