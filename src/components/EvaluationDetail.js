@@ -1,5 +1,20 @@
 import React from "react";
-import { Paper, Typography, Box, Table, TableBody, TableCell, TableHead, TableRow, Chip, Divider } from "@mui/material";
+import {
+  Paper,
+  Typography,
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Chip,
+  Divider,
+} from "@mui/material";
+import {
+  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Tooltip,
+  ResponsiveContainer
+} from "recharts";
 
 export default function EvaluationDetail({ evaluation }) {
   if (!evaluation) {
@@ -23,15 +38,22 @@ export default function EvaluationDetail({ evaluation }) {
     }
   };
 
-  // === Hitung summary rata-rata per kategori ===
+  // === Hitung summary per kategori ===
   const categorySummary = {};
+  const overallCounts = { Kurang: 0, Baik: 0, "Sangat Baik": 0 };
+
   if (evaluation.results?.length > 0) {
     evaluation.results.forEach((res) => {
       if (!categorySummary[res.category]) {
-        categorySummary[res.category] = { counts: { Kurang: 0, Baik: 0, "Sangat Baik": 0 }, total: 0 };
+        categorySummary[res.category] = {
+          counts: { Kurang: 0, Baik: 0, "Sangat Baik": 0 },
+          total: 0,
+        };
       }
       categorySummary[res.category].counts[res.label] += 1;
       categorySummary[res.category].total += 1;
+
+      overallCounts[res.label] += 1;
     });
   }
 
@@ -46,6 +68,21 @@ export default function EvaluationDetail({ evaluation }) {
     });
     return label;
   };
+
+  const overallLabel = getDominantLabel(overallCounts);
+
+  // === Data untuk Radar Chart ===
+  const radarData = Object.entries(categorySummary).map(([category, data]) => {
+    const label = getDominantLabel(data.counts);
+    let score = 1;
+    if (label === "Baik") score = 2;
+    if (label === "Sangat Baik") score = 3;
+    return {
+      category,
+      score,
+      label,
+    };
+  });
 
   return (
     <Paper sx={{ p: 3 }}>
@@ -79,7 +116,11 @@ export default function EvaluationDetail({ evaluation }) {
                   <TableCell>{res.test}</TableCell>
                   <TableCell>{res.value}</TableCell>
                   <TableCell>
-                    <Chip label={res.label} color={getColor(res.label)} size="small" />
+                    <Chip
+                      label={res.label}
+                      color={getColor(res.label)}
+                      size="small"
+                    />
                   </TableCell>
                 </TableRow>
               ))
@@ -94,6 +135,31 @@ export default function EvaluationDetail({ evaluation }) {
         </Table>
       </Box>
 
+      {/* Radar Chart */}
+      {radarData.length > 0 && (
+        <>
+          <Divider sx={{ my: 2 }} />
+          <Typography variant="subtitle1">📈 Visualisasi Radar Chart</Typography>
+          <Box sx={{ width: "100%", height: 300, mt: 2 }}>
+            <ResponsiveContainer>
+              <RadarChart data={radarData}>
+                <PolarGrid />
+                <PolarAngleAxis dataKey="category" />
+                <PolarRadiusAxis angle={30} domain={[0, 3]} />
+                <Tooltip />
+                <Radar
+                  name="Evaluasi"
+                  dataKey="score"
+                  stroke="#1976d2"
+                  fill="#1976d2"
+                  fillOpacity={0.6}
+                />
+              </RadarChart>
+            </ResponsiveContainer>
+          </Box>
+        </>
+      )}
+
       {/* Summary per kategori */}
       {Object.keys(categorySummary).length > 0 && (
         <>
@@ -105,11 +171,31 @@ export default function EvaluationDetail({ evaluation }) {
               return (
                 <Typography key={idx} variant="body2" sx={{ mb: 0.5 }}>
                   {category}:{" "}
-                  <Chip label={dominant} color={getColor(dominant)} size="small" />
+                  <Chip
+                    label={dominant}
+                    color={getColor(dominant)}
+                    size="small"
+                  />
                 </Typography>
               );
             })}
           </Box>
+        </>
+      )}
+
+      {/* Overall summary */}
+      {evaluation.results?.length > 0 && (
+        <>
+          <Divider sx={{ my: 2 }} />
+          <Typography variant="subtitle1">🏅 Ringkasan Keseluruhan</Typography>
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            Mayoritas hasil evaluasi siswa ini adalah{" "}
+            <Chip
+              label={overallLabel}
+              color={getColor(overallLabel)}
+              size="small"
+            />
+          </Typography>
         </>
       )}
     </Paper>
