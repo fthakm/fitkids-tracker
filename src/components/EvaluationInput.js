@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { evaluationCriteria } from "@/utils/evaluationCriteria";
-import { addEvaluation } from "@/services/evaluationService";
+import { evaluationCriteria } from "../utils/evaluationCriteria";
+import { addEvaluation } from "
+  ../services/evaluationService";
 import { Button } from "@/components/ui/button";
 
 export default function EvaluationInput({ student, onSuccess }) {
