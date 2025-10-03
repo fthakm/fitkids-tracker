@@ -170,6 +170,61 @@ export async function getTargets() {
   return data || [];
 }
 
+// ambil target spesifik sesuai usia student
+export async function getTargetsByStudent(studentId) {
+  if (!studentId) return [];
+
+  try {
+    // ambil umur student dari view
+    const { data: student, error: studentError } = await supabase
+      .from("vw_students_with_age")
+      .select("id, age, birth_date")
+      .eq("id", studentId)
+      .single();
+
+    if (studentError) throw studentError;
+    if (!student) return [];
+
+    // kalau kolom age ga ada, hitung manual dari birth_date
+    let age = student.age;
+    if (!age && student.birth_date) {
+      const birthDate = new Date(student.birth_date);
+      const today = new Date();
+      age =
+        today.getFullYear() -
+        birthDate.getFullYear() -
+        (today <
+        new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate())
+          ? 1
+          : 0);
+    }
+
+    if (!age) return [];
+
+    // mapping kategori usia
+    let ageCategory = null;
+    if (age >= 6 && age <= 8) ageCategory = "6-8";
+    else if (age >= 9 && age <= 11) ageCategory = "9-11";
+    else if (age >= 12 && age <= 15) ageCategory = "12-15";
+    else if (age >= 16) ageCategory = "16+";
+
+    if (!ageCategory) return [];
+
+    // ambil target dari tabel sesuai kategori usia
+    const { data: targets, error: targetsError } = await supabase
+      .from("targets")
+      .select("*")
+      .eq("age_category", ageCategory);
+
+    if (targetsError) throw targetsError;
+
+    return targets || [];
+  } catch (err) {
+    console.error("getTargetsByStudent error:", err.message);
+    return [];
+  }
+}
+
 // === BADGES ===
 export async function getBadgesByStudent(studentId) {
   if (!studentId) return [];
