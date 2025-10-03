@@ -1,8 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { Box, AppBar, Toolbar, Typography, Tabs, Tab, Container, Paper, Button, Snackbar, Alert, Select, MenuItem, IconButton } from "@mui/material";
+import { 
+  Box, AppBar, Toolbar, Typography, Tabs, Tab, 
+  Container, Paper, Button, Snackbar, Alert, 
+  Select, MenuItem, IconButton 
+} from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { getStudents, saveStudent, updateStudent, deleteStudent, getResultsByStudent, saveResults } from "./services/studentService";
+import { 
+  getStudents, saveStudent, updateStudent, 
+  deleteStudent, getResultsByStudent, saveResults 
+} from "./services/studentService";
 import AddEditStudentDialog from "./dialogs/AddEditStudentDialog";
 import InputResultsDialog from "./dialogs/InputResultsDialog";
 import StudentList from "./components/StudentList";
@@ -114,7 +121,13 @@ export default function App() {
                 <MenuItem value="12-15">12-15</MenuItem>
                 <MenuItem value="16+">16+</MenuItem>
               </Select>
-              <Button variant="contained" startIcon={<AddIcon />} onClick={() => { setEditingStudent(null); setOpenAddEdit(true); }}>Tambah Siswa</Button>
+              <Button 
+                variant="contained" 
+                startIcon={<AddIcon />} 
+                onClick={() => { setEditingStudent(null); setOpenAddEdit(true); }}
+              >
+                Tambah Siswa
+              </Button>
             </Box>
             <StudentList
               students={filteredStudents}
@@ -150,4 +163,4 @@ export default function App() {
       </Container>
     </Box>
   );
-    }
+        }
