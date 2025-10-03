@@ -125,16 +125,12 @@ export async function deleteStudent(student) {
 }
 
 // === RESULTS ===
-export async function saveResult(result) {
-  const payload = {
-    student_id: result.student_id,
-    test_name: result.test_name,
-    score: result.score,
-    unit: result.unit ?? null,
-    remarks: result.remarks ?? null,
-    test_date: result.test_date ?? null,
-  };
-  const { error } = await supabase.from("results").insert([payload]);
+export async function saveResult(results) {
+  // Pastikan bentuknya array
+  const payload = Array.isArray(results) ? results : [results];
+
+  const { error } = await supabase.from("results").insert(payload);
+
   if (error) {
     console.error("saveResult error:", error);
     throw error;
