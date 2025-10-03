@@ -86,11 +86,14 @@ export default function AddEditStudentDialog({ open, onClose, onSave, student })
     try {
       let photoUrl = form.photoUrl;
       if (photoFile) {
+        // upload ke supabase
         photoUrl = await uploadStudentPhoto(photoFile);
       }
 
       onSave({ ...form, photoUrl }, !!student);
+      setSnackbar({ open: true, message: "Siswa berhasil disimpan", severity: "success" });
     } catch (err) {
+      console.error(err);
       setSnackbar({ open: true, message: "Gagal upload foto", severity: "error" });
     }
   };
@@ -134,7 +137,17 @@ export default function AddEditStudentDialog({ open, onClose, onSave, student })
             Upload Foto
             <input type="file" hidden accept="image/*" onChange={handleFileChange} />
           </Button>
-          {form.photoUrl && (
+
+          {/* preview kalau ada file baru */}
+          {photoFile && (
+            <div style={{ marginTop: 10 }}>
+              <p>File dipilih: {photoFile.name}</p>
+              <img src={URL.createObjectURL(photoFile)} alt="Preview" width="100" style={{ borderRadius: 8 }} />
+            </div>
+          )}
+
+          {/* preview kalau edit & sudah ada foto */}
+          {!photoFile && form.photoUrl && (
             <div style={{ marginTop: 10 }}>
               <img src={form.photoUrl} alt="Foto siswa" width="100" style={{ borderRadius: 8 }} />
             </div>
@@ -156,4 +169,4 @@ export default function AddEditStudentDialog({ open, onClose, onSave, student })
       </Snackbar>
     </>
   );
-            }
+}
