@@ -1,14 +1,7 @@
 // src/services/studentService.js
 import { supabase } from "../supabaseClient";
 
-/**
- * NOTE:
- * - Frontend often uses camelCase (birthDate). DB uses snake_case (birth_date).
- * - Service maps/sanitizes incoming data before insert/update.
- */
-
 function toDbStudentPayload(student) {
-  // map camelCase -> snake_case for DB
   return {
     name: student.name ?? null,
     birth_date: student.birthDate ?? student.birth_date ?? null,
@@ -22,9 +15,13 @@ function toDbStudentPayload(student) {
   };
 }
 
-// === STUDENTS (use simple view or table) ===
+// === STUDENTS ===
 export async function getStudents() {
-  const { data, error } = await supabase.from("fitkids.vw_students_with_age").select("*").order("created_at", { ascending: false });
+  const { data, error } = await supabase
+    .from("vw_students_with_age")
+    .select("*")
+    .order("created_at", { ascending: false });
+
   if (error) {
     console.error("getStudents error:", error);
     return [];
@@ -33,7 +30,12 @@ export async function getStudents() {
 }
 
 export async function getStudentById(id) {
-  const { data, error } = await supabase.from("fitkids.vw_student_with_results_targets").select("*").eq("student_id", id).limit(1);
+  const { data, error } = await supabase
+    .from("vw_student_with_results_targets")
+    .select("*")
+    .eq("student_id", id)
+    .limit(1);
+
   if (error) {
     console.error("getStudentById error:", error);
     return null;
@@ -43,7 +45,7 @@ export async function getStudentById(id) {
 
 export async function saveStudent(student) {
   const payload = toDbStudentPayload(student);
-  const { error } = await supabase.from("fitkids.students").insert([payload]);
+  const { error } = await supabase.from("students").insert([payload]);
   if (error) {
     console.error("saveStudent error:", error);
     throw error;
@@ -52,7 +54,7 @@ export async function saveStudent(student) {
 
 export async function updateStudent(id, student) {
   const payload = toDbStudentPayload(student);
-  const { error } = await supabase.from("fitkids.students").update(payload).eq("id", id);
+  const { error } = await supabase.from("students").update(payload).eq("id", id);
   if (error) {
     console.error("updateStudent error:", error);
     throw error;
@@ -60,7 +62,7 @@ export async function updateStudent(id, student) {
 }
 
 export async function deleteStudent(id) {
-  const { error } = await supabase.from("fitkids.students").delete().eq("id", id);
+  const { error } = await supabase.from("students").delete().eq("id", id);
   if (error) {
     console.error("deleteStudent error:", error);
     throw error;
@@ -69,16 +71,15 @@ export async function deleteStudent(id) {
 
 // === RESULTS ===
 export async function saveResult(result) {
-  // result should be { student_id, test_name, score, unit?, remarks?, test_date? }
   const payload = {
     student_id: result.student_id,
     test_name: result.test_name,
     score: result.score,
     unit: result.unit ?? null,
     remarks: result.remarks ?? null,
-    test_date: result.test_date ?? null
+    test_date: result.test_date ?? null,
   };
-  const { error } = await supabase.from("fitkids.results").insert([payload]);
+  const { error } = await supabase.from("results").insert([payload]);
   if (error) {
     console.error("saveResult error:", error);
     throw error;
@@ -86,7 +87,12 @@ export async function saveResult(result) {
 }
 
 export async function getResultsByStudent(studentId) {
-  const { data, error } = await supabase.from("fitkids.results").select("*").eq("student_id", studentId).order("test_date", { ascending: false });
+  const { data, error } = await supabase
+    .from("results")
+    .select("*")
+    .eq("student_id", studentId)
+    .order("test_date", { ascending: false });
+
   if (error) {
     console.error("getResultsByStudent error:", error);
     return [];
@@ -96,7 +102,7 @@ export async function getResultsByStudent(studentId) {
 
 // === TARGETS ===
 export async function getTargets() {
-  const { data, error } = await supabase.from("fitkids.targets").select("*").order("test_name");
+  const { data, error } = await supabase.from("targets").select("*").order("test_name");
   if (error) {
     console.error("getTargets error:", error);
     return [];
@@ -104,12 +110,13 @@ export async function getTargets() {
   return data || [];
 }
 
-// === BADGES / RECOMMENDATIONS ===
+// === BADGES ===
 export async function getBadgesByStudent(studentId) {
-  const { data, error } = await supabase.from("fitkids.student_badges as sb")
-    .select("sb.id, sb.awarded_at, b.badge_name, b.description")
-    .eq("sb.student_id", studentId)
-    .join("fitkids.badges as b", "sb.badge_id", "b.id");
+  const { data, error } = await supabase
+    .from("student_badges")
+    .select("id, awarded_at, badges ( badge_name, description )")
+    .eq("student_id", studentId);
+
   if (error) {
     console.error("getBadgesByStudent error:", error);
     return [];
@@ -118,8 +125,11 @@ export async function getBadgesByStudent(studentId) {
 }
 
 export async function getStudentDashboardData() {
-  // view returns one row per student with nested results/targets as JSON
-  const { data, error } = await supabase.from("fitkids.vw_student_with_results_targets").select("*").order("created_at", { ascending: false });
+  const { data, error } = await supabase
+    .from("vw_student_with_results_targets")
+    .select("*")
+    .order("created_at", { ascending: false });
+
   if (error) {
     console.error("getStudentDashboardData error:", error);
     return [];
