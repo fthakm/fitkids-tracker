@@ -2,7 +2,7 @@
 import React from "react";
 import { Paper, Typography, Box, Table, TableHead, TableRow, TableCell, TableBody } from "@mui/material";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip, Legend } from "recharts";
-import { evaluationCriteria } from "../data/evaluationCriteria";
+import { evaluationCriteria } from "../utils/evaluationCriteria";
 import { classifyScore } from "../utils/evaluationHelpers";
 
 export default function EvaluationDetail({ evaluation }) {
