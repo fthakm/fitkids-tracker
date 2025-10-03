@@ -1,203 +1,111 @@
-import React from "react";
+import { useEffect, useState } from "react";
+import { getEvaluationsByStudent } from "@/services/evaluationService";
+import { Card, CardContent } from "@/components/ui/card";
 import {
-  Paper,
-  Typography,
-  Box,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  Chip,
-  Divider,
-} from "@mui/material";
-import {
-  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Tooltip,
-  ResponsiveContainer
+  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Tooltip, ResponsiveContainer,
 } from "recharts";
 
-export default function EvaluationDetail({ evaluation }) {
-  if (!evaluation) {
+export default function EvaluationDetail({ student }) {
+  const [evaluations, setEvaluations] = useState([]);
+
+  useEffect(() => {
+    if (student?.id) {
+      loadData();
+    }
+    async function loadData() {
+      const data = await getEvaluationsByStudent(student.id);
+      setEvaluations(data);
+    }
+  }, [student]);
+
+  if (!student) {
     return (
-      <Paper sx={{ p: 3 }}>
-        <Typography>Belum ada evaluasi dipilih</Typography>
-      </Paper>
+      <Card className="p-4">
+        <CardContent>Belum ada siswa dipilih</CardContent>
+      </Card>
     );
   }
 
-  const getColor = (label) => {
-    switch (label) {
-      case "Kurang":
-        return "error";
-      case "Baik":
-        return "warning";
-      case "Sangat Baik":
-        return "success";
-      default:
-        return "default";
-    }
-  };
-
-  // === Hitung summary per kategori ===
-  const categorySummary = {};
-  const overallCounts = { Kurang: 0, Baik: 0, "Sangat Baik": 0 };
-
-  if (evaluation.results?.length > 0) {
-    evaluation.results.forEach((res) => {
-      if (!categorySummary[res.category]) {
-        categorySummary[res.category] = {
-          counts: { Kurang: 0, Baik: 0, "Sangat Baik": 0 },
-          total: 0,
-        };
-      }
-      categorySummary[res.category].counts[res.label] += 1;
-      categorySummary[res.category].total += 1;
-
-      overallCounts[res.label] += 1;
-    });
+  if (evaluations.length === 0) {
+    return (
+      <Card className="p-4">
+        <CardContent>Belum ada evaluasi untuk {student.name}</CardContent>
+      </Card>
+    );
   }
 
-  const getDominantLabel = (counts) => {
-    let max = 0;
-    let label = "Kurang";
-    Object.entries(counts).forEach(([k, v]) => {
-      if (v > max) {
-        max = v;
-        label = k;
-      }
-    });
-    return label;
-  };
-
-  const overallLabel = getDominantLabel(overallCounts);
-
-  // === Data untuk Radar Chart ===
-  const radarData = Object.entries(categorySummary).map(([category, data]) => {
-    const label = getDominantLabel(data.counts);
-    let score = 1;
-    if (label === "Baik") score = 2;
-    if (label === "Sangat Baik") score = 3;
-    return {
-      category,
-      score,
-      label,
-    };
-  });
+  // ambil evaluasi terakhir
+  const latest = evaluations[0];
+  const chartData = latest.results.map((r) => ({
+    subject: r.test,
+    value: mapToNumeric(r.label),
+  }));
 
   return (
-    <Paper sx={{ p: 3 }}>
-      <Typography variant="h6">Detail Evaluasi</Typography>
-      <Typography variant="body2" color="textSecondary">
-        Tanggal: {evaluation.date}
-      </Typography>
+    <Card className="p-4">
+      <h2 className="text-xl font-bold mb-2">Evaluasi Terbaru: {student.name}</h2>
+      <p className="text-sm text-gray-500 mb-4">Tanggal: {latest.date}</p>
 
-      {evaluation.student_name && (
-        <Typography variant="body1" sx={{ mt: 2 }}>
-          <strong>Siswa:</strong> {evaluation.student_name}
-        </Typography>
-      )}
-
-      {/* Tabel detail hasil */}
-      <Box mt={2}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Aspek</TableCell>
-              <TableCell>Test</TableCell>
-              <TableCell>Nilai</TableCell>
-              <TableCell>Kategori</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {evaluation.results?.length > 0 ? (
-              evaluation.results.map((res, idx) => (
-                <TableRow key={idx}>
-                  <TableCell>{res.category}</TableCell>
-                  <TableCell>{res.test}</TableCell>
-                  <TableCell>{res.value}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={res.label}
-                      color={getColor(res.label)}
-                      size="small"
-                    />
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={4} align="center">
-                  Belum ada hasil evaluasi
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </Box>
-
-      {/* Radar Chart */}
-      {radarData.length > 0 && (
-        <>
-          <Divider sx={{ my: 2 }} />
-          <Typography variant="subtitle1">📈 Visualisasi Radar Chart</Typography>
-          <Box sx={{ width: "100%", height: 300, mt: 2 }}>
-            <ResponsiveContainer>
-              <RadarChart data={radarData}>
-                <PolarGrid />
-                <PolarAngleAxis dataKey="category" />
-                <PolarRadiusAxis angle={30} domain={[0, 3]} />
-                <Tooltip />
-                <Radar
-                  name="Evaluasi"
-                  dataKey="score"
-                  stroke="#1976d2"
-                  fill="#1976d2"
-                  fillOpacity={0.6}
-                />
-              </RadarChart>
-            </ResponsiveContainer>
-          </Box>
-        </>
-      )}
-
-      {/* Summary per kategori */}
-      {Object.keys(categorySummary).length > 0 && (
-        <>
-          <Divider sx={{ my: 2 }} />
-          <Typography variant="subtitle1">📊 Ringkasan per Kategori</Typography>
-          <Box mt={1}>
-            {Object.entries(categorySummary).map(([category, data], idx) => {
-              const dominant = getDominantLabel(data.counts);
-              return (
-                <Typography key={idx} variant="body2" sx={{ mb: 0.5 }}>
-                  {category}:{" "}
-                  <Chip
-                    label={dominant}
-                    color={getColor(dominant)}
-                    size="small"
-                  />
-                </Typography>
-              );
-            })}
-          </Box>
-        </>
-      )}
-
-      {/* Overall summary */}
-      {evaluation.results?.length > 0 && (
-        <>
-          <Divider sx={{ my: 2 }} />
-          <Typography variant="subtitle1">🏅 Ringkasan Keseluruhan</Typography>
-          <Typography variant="body2" sx={{ mt: 1 }}>
-            Mayoritas hasil evaluasi siswa ini adalah{" "}
-            <Chip
-              label={overallLabel}
-              color={getColor(overallLabel)}
-              size="small"
+      <div className="h-96">
+        <ResponsiveContainer width="100%" height="100%">
+          <RadarChart outerRadius="80%" data={chartData}>
+            <PolarGrid />
+            <PolarAngleAxis dataKey="subject" />
+            <PolarRadiusAxis domain={[0, 3]} tickFormatter={mapBackLabel} />
+            <Tooltip formatter={(val) => mapBackLabel(val)} />
+            <Radar
+              name="Evaluasi"
+              dataKey="value"
+              stroke="#8884d8"
+              fill="#8884d8"
+              fillOpacity={0.6}
             />
-          </Typography>
-        </>
-      )}
-    </Paper>
+          </RadarChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="mt-6">
+        <h3 className="font-semibold mb-2">Detail Hasil</h3>
+        <table className="w-full border text-sm">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border p-2">Kategori</th>
+              <th className="border p-2">Tes</th>
+              <th className="border p-2">Nilai</th>
+              <th className="border p-2">Predikat</th>
+            </tr>
+          </thead>
+          <tbody>
+            {latest.results.map((r, i) => (
+              <tr key={i}>
+                <td className="border p-2">{r.category}</td>
+                <td className="border p-2">{r.test}</td>
+                <td className="border p-2">{r.value}</td>
+                <td className="border p-2 font-semibold">{r.label}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Card>
   );
-        }
+}
+
+// 🔹 helper utk Radar Chart mapping
+function mapToNumeric(label) {
+  switch (label) {
+    case "Kurang": return 1;
+    case "Baik": return 2;
+    case "Sangat Baik": return 3;
+    default: return 0;
+  }
+}
+
+function mapBackLabel(val) {
+  switch (val) {
+    case 1: return "Kurang";
+    case 2: return "Baik";
+    case 3: return "Sangat Baik";
+    default: return "";
+  }
+}
