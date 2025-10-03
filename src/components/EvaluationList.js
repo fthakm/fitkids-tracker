@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { getEvaluationsByStudent } from "@/services/evaluationService";
-import { Card, CardContent } from "@/components/ui/card";
+import { getEvaluationsByStudent } from "../services/evaluationService";
+import { Card, CardContent } from "@mui/material";
 
 export default function EvaluationList({ student, onSelect }) {
   const [evaluations, setEvaluations] = useState([]);
