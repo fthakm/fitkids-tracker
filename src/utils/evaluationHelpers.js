@@ -1,3 +1,5 @@
+// src/utils/evaluationHelpers.js
+
 import { evaluationCriteria } from "./evaluationCriteria";
 
 // Tentukan kelompok umur dari usia
@@ -35,7 +37,6 @@ export function evaluateScore(test, score, age) {
 function checkCondition(value, condition) {
   condition = condition.trim();
 
-  // Range (contoh: "20 - 30")
   if (condition.includes("-")) {
     const [minStr, maxStr] = condition.split("-").map((s) => s.trim());
     const min = parseFloat(minStr);
@@ -43,23 +44,54 @@ function checkCondition(value, condition) {
     return value >= min && value <= max;
   }
 
-  // Lebih kecil (contoh: "< 30")
   if (condition.startsWith("<")) {
     const num = parseFloat(condition.replace("<", "").trim());
     return value < num;
   }
 
-  // Lebih besar (contoh: "> 30")
   if (condition.startsWith(">")) {
     const num = parseFloat(condition.replace(">", "").trim());
     return value > num;
   }
 
-  // Sama dengan angka (contoh: "0 cm")
   const num = parseFloat(condition);
   if (!isNaN(num)) {
     return value === num;
   }
 
   return false;
+}
+
+// --- FUNGSI TAMBAHAN BIAR LENGKAP ---
+
+// Klasifikasi skor umum
+export function classifyScore(score) {
+  if (score >= 85) return "Sangat Baik";
+  if (score >= 70) return "Baik";
+  if (score >= 50) return "Cukup";
+  return "Kurang";
+}
+
+// Hitung rata-rata dari daftar skor
+export function calculateAverage(scores) {
+  if (!scores || scores.length === 0) return 0;
+  const sum = scores.reduce((acc, val) => acc + val, 0);
+  return sum / scores.length;
+}
+
+// Ambil skor maksimum
+export function getMaxScore(scores) {
+  return scores && scores.length > 0 ? Math.max(...scores) : 0;
+}
+
+// Ambil skor minimum
+export function getMinScore(scores) {
+  return scores && scores.length > 0 ? Math.min(...scores) : 0;
+}
+
+// Hitung status evaluasi untuk satu tes (pakai evaluateScore + classifyScore)
+export function getEvaluationStatus(test, score, age) {
+  const evalResult = evaluateScore(test, score, age);
+  const classification = classifyScore(score);
+  return `${evalResult} (${classification})`;
 }
