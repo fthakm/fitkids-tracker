@@ -41,18 +41,19 @@ export default function EvaluationsPage() {
     setDialogOpen(false);
   };
 
-  const handleSubmitResult = async (resultData) => {
-    const updated = {
-      ...selectedEvaluation,
-      student_id: resultData.studentId,
-      student_name: resultData.studentName,
-      results: resultData.results,
-    };
-    await addEvaluation(updated);
-    fetchData();
-    setSelectedEvaluation(updated);
+const handleSubmitResult = async (resultData) => {
+  const updated = {
+    ...selectedEvaluation,
+    student_id: resultData.studentId,
+    student_name: resultData.studentName,
+    results: resultData.results,
   };
 
+  const saved = await updateEvaluation(selectedEvaluation.id, updated);
+  fetchData();
+  setSelectedEvaluation(saved);
+};
+  
   return (
     <Box p={3}>
       <Grid container spacing={3}>
