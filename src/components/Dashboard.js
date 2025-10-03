@@ -1,38 +1,52 @@
-// src/components/Dashboard.js
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, Typography, Grid, Chip } from "@mui/material";
 import { getStudentDashboardData } from "../services/studentService";
+import { Box, Typography, Paper, Grid, Chip } from "@mui/material";
 
-export default function Dashboard() {
-  const [data, setData] = useState([]);
+export default function Dashboard({ students }) {
+  const [dashboardData, setDashboardData] = useState([]);
 
   useEffect(() => {
-    getStudentDashboardData()
-      .then(setData)
-      .catch(console.error);
+    getStudentDashboardData().then(setDashboardData);
   }, []);
 
   return (
-    <Grid container spacing={2} sx={{ mt: 2 }}>
-      {data.map((row) => (
-        <Grid item xs={12} md={6} key={row.student_id}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6">{row.name}</Typography>
-              <Typography variant="body2">Umur: {row.age}</Typography>
-              <Typography variant="body2">Tes: {row.test_name}</Typography>
-              <Typography variant="body2">
-                Nilai: {row.score} / Target {row.min_score}
-              </Typography>
-              {row.score >= row.min_score ? (
-                <Chip label="✅ Lulus Target" color="success" />
-              ) : (
-                <Chip label="⚠️ Belum Tercapai" color="warning" />
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-      ))}
-    </Grid>
+    <Box>
+      <Typography variant="h5" gutterBottom>
+        Dashboard Siswa
+      </Typography>
+      <Grid container spacing={2}>
+        {dashboardData.map((s) => (
+          <Grid item xs={12} md={6} key={s.student_id}>
+            <Paper sx={{ p: 2, borderRadius: 2 }}>
+              <Typography variant="h6">{s.name}</Typography>
+              <Typography variant="body2">Umur: {s.age} th</Typography>
+              <Typography variant="body2">Alamat: {s.address}</Typography>
+              <Box mt={1}>
+                <Typography variant="subtitle2">Badges:</Typography>
+                {s.badges && s.badges.length > 0 ? (
+                  s.badges.map((b, idx) => (
+                    <Chip key={idx} label={b.badge_name} sx={{ mr: 1, mb: 1 }} />
+                  ))
+                ) : (
+                  <Typography variant="body2">Belum ada</Typography>
+                )}
+              </Box>
+              <Box mt={2}>
+                <Typography variant="subtitle2">Hasil Tes:</Typography>
+                {s.results && s.results.length > 0 ? (
+                  s.results.map((r, idx) => (
+                    <Typography key={idx} variant="body2">
+                      {r.test_name}: {r.score} {r.unit || ""} ({r.test_date})
+                    </Typography>
+                  ))
+                ) : (
+                  <Typography variant="body2">Belum ada hasil</Typography>
+                )}
+              </Box>
+            </Paper>
+          </Grid>
+        ))}
+      </Grid>
+    </Box>
   );
-}
+          }
