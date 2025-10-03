@@ -1,78 +1,82 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Typography,
+  List,
+  ListItem,
+  ListItemText,
+  Chip,
+  Box,
+  Divider
+} from "@mui/material";
+import { getResultsByStudent } from "../services/studentService";
 
-export default function StudentDialog({ open, onClose, onSave }) {
-  const [form, setForm] = useState({
-    name: "",
-    birthdate: "",
-    gender: "L",
-    address: "",
-  });
+export default function StudentDialog({ open, onClose, student }) {
+  const [results, setResults] = useState([]);
 
-  if (!open) return null;
-
-  function handleChange(e) {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  }
-
-  function handleSubmit() {
-    if (!form.name || !form.birthdate) {
-      alert("Nama & tanggal lahir wajib diisi!");
-      return;
+  useEffect(() => {
+    if (student?.id) {
+      getResultsByStudent(student.id).then(setResults).catch(console.error);
     }
-    onSave(form);
-  }
+  }, [student]);
+
+  // Badge logic sederhana (bisa dikembangin sesuai target)
+  const getBadges = () => {
+    if (!results.length) return [];
+    const badges = [];
+    if (results.length >= 5) badges.push("Rajin Latihan 💪");
+    if (results.some(r => r.score >= 90)) badges.push("High Achiever 🏆");
+    if (results.every(r => r.score >= 70)) badges.push("Konsisten ⭐");
+    return badges;
+  };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center">
-      <div className="bg-white p-4 rounded w-96">
-        <h2 className="font-bold text-lg">Tambah Siswa</h2>
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle>Detail Siswa: {student?.name}</DialogTitle>
+      <DialogContent dividers>
+        <Typography variant="subtitle1">Umur: {student?.age}</Typography>
+        <Typography variant="subtitle1">Kelas: {student?.class_name}</Typography>
 
-        <input
-          className="border p-1 w-full mt-2"
-          placeholder="Nama"
-          name="name"
-          value={form.name}
-          onChange={handleChange}
-        />
+        <Divider sx={{ my: 2 }} />
 
-        <input
-          className="border p-1 w-full mt-2"
-          type="date"
-          name="birthdate"
-          value={form.birthdate}
-          onChange={handleChange}
-        />
+        <Typography variant="h6" gutterBottom>Hasil Tes</Typography>
+        {results.length === 0 ? (
+          <Typography variant="body2" color="text.secondary">
+            Belum ada hasil tes.
+          </Typography>
+        ) : (
+          <List>
+            {results.map((r, idx) => (
+              <ListItem key={idx} divider>
+                <ListItemText
+                  primary={`${r.test_name} - ${r.score} ${r.unit || ""}`}
+                  secondary={`${r.test_date} | Catatan: ${r.remarks || "-"}`}
+                />
+              </ListItem>
+            ))}
+          </List>
+        )}
 
-        <select
-          className="border p-1 w-full mt-2"
-          name="gender"
-          value={form.gender}
-          onChange={handleChange}
-        >
-          <option value="L">Laki-laki</option>
-          <option value="P">Perempuan</option>
-        </select>
+        <Divider sx={{ my: 2 }} />
 
-        <textarea
-          className="border p-1 w-full mt-2"
-          placeholder="Alamat"
-          name="address"
-          value={form.address}
-          onChange={handleChange}
-        />
-
-        <div className="mt-3 flex justify-end gap-2">
-          <button onClick={onClose} className="px-3 py-1 border rounded">
-            Batal
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="px-3 py-1 bg-blue-500 text-white rounded"
-          >
-            Simpan
-          </button>
-        </div>
-      </div>
-    </div>
+        <Typography variant="h6" gutterBottom>Badges</Typography>
+        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+          {getBadges().length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              Belum ada badge.
+            </Typography>
+          ) : (
+            getBadges().map((b, idx) => <Chip key={idx} label={b} color="primary" />)
+          )}
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Tutup</Button>
+      </DialogActions>
+    </Dialog>
   );
-}
+                                }
