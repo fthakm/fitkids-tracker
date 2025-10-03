@@ -2,20 +2,18 @@ import React, { useEffect, useState } from "react";
 import { 
   Box, AppBar, Toolbar, Typography, Tabs, Tab, 
   Container, Paper, Button, Snackbar, Alert, 
-  Select, MenuItem, IconButton 
+  Select, MenuItem 
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
 import { 
   getStudents, saveStudent, updateStudent, 
-  deleteStudent, getResultsByStudent, saveResults 
+  deleteStudent, saveResult  // <-- pakai saveResult singular
 } from "./services/studentService";
 import AddEditStudentDialog from "./dialogs/AddEditStudentDialog";
 import InputResultsDialog from "./dialogs/InputResultsDialog";
 import StudentList from "./components/StudentList";
 import Dashboard from "./components/Dashboard";
 import Leaderboard from "./components/Leaderboard";
-import StudentDialog from "./components/StudentDialog";
 
 export default function App() {
   const [tab, setTab] = useState(0);
@@ -75,25 +73,35 @@ export default function App() {
     setOpenInput(true);
   };
 
-  const handleSaveResults = async (results) => {
+  const handleSaveResults = async (result) => {  // result dari InputResultsDialog
     try {
-      await saveResults(results);
-      setSnackbar({ open: true, message: "Hasil latihan tersimpan", severity: "success" });
+      await saveResult(result);  // <--- singular
+      setSnackbar({ open: true, message: "Hasil penilaian tersimpan", severity: "success" });
       setOpenInput(false);
       fetchStudents();
     } catch (err) {
       console.error(err);
-      setSnackbar({ open: true, message: "Gagal menyimpan hasil latihan", severity: "error" });
+      setSnackbar({ open: true, message: "Gagal menyimpan hasil penilaian", severity: "error" });
     }
   };
 
-  const filteredStudents = filterAge ? students.filter(s => s.age === filterAge) : students;
+  const filteredStudents = filterAge
+    ? students.filter((s) => {
+        if (filterAge === "6-8") return s.age >= 6 && s.age <= 8;
+        if (filterAge === "9-11") return s.age >= 9 && s.age <= 11;
+        if (filterAge === "12-15") return s.age >= 12 && s.age <= 15;
+        if (filterAge === "16+") return s.age >= 16;
+        return true;
+      })
+    : students;
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "#f7f9fa" }}>
       <AppBar position="static">
         <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>FitKids Tracker</Typography>
+          <Typography variant="h6" sx={{ flexGrow: 1 }}>
+            FitKids Tracker
+          </Typography>
         </Toolbar>
       </AppBar>
       <Container maxWidth="lg" sx={{ mt: 3 }}>
@@ -115,24 +123,30 @@ export default function App() {
         {tab === 1 && (
           <Box mt={3}>
             <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-              <Select value={filterAge} onChange={e => setFilterAge(e.target.value)} displayEmpty>
+              <Select value={filterAge} onChange={(e) => setFilterAge(e.target.value)} displayEmpty>
                 <MenuItem value="">Semua Usia</MenuItem>
                 <MenuItem value="6-8">6-8</MenuItem>
                 <MenuItem value="9-11">9-11</MenuItem>
                 <MenuItem value="12-15">12-15</MenuItem>
                 <MenuItem value="16+">16+</MenuItem>
               </Select>
-              <Button 
-                variant="contained" 
-                startIcon={<AddIcon />} 
-                onClick={() => { setEditingStudent(null); setOpenAddEdit(true); }}
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => {
+                  setEditingStudent(null);
+                  setOpenAddEdit(true);
+                }}
               >
                 Tambah Siswa
               </Button>
             </Box>
             <StudentList
               students={filteredStudents}
-              onEdit={student => { setEditingStudent(student); setOpenAddEdit(true); }}
+              onEdit={(student) => {
+                setEditingStudent(student);
+                setOpenAddEdit(true);
+              }}
               onDelete={handleDelete}
               onInput={handleOpenInput}
             />
@@ -164,4 +178,4 @@ export default function App() {
       </Container>
     </Box>
   );
-        }
+          }
