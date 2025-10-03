@@ -4,7 +4,7 @@ import EvaluationList from "../components/EvaluationList";
 import EvaluationDetail from "../components/EvaluationDetail";
 import EvaluationInput from "../components/EvaluationInput";
 import AddEvaluationDialog from "../dialogs/AddEvaluationDialog";
-import { getEvaluations, addEvaluation } from "../services/evaluationService";
+import { getEvaluations, addEvaluation, updateEvaluation } from "../services/evaluationService";
 import { getStudents } from "../services/studentService"; // asumsi sudah ada
 
 export default function EvaluationsPage() {
