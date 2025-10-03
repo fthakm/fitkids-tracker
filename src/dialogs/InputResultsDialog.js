@@ -8,7 +8,7 @@ import {
   TextField,
   MenuItem,
 } from "@mui/material";
-import { getTargets } from "../services/studentService";
+import { getTargetsByStudent } from "../services/studentService";
 
 export default function InputResultsDialog({ open, onClose, student, onSave }) {
   const [targets, setTargets] = useState([]);
@@ -20,13 +20,18 @@ export default function InputResultsDialog({ open, onClose, student, onSave }) {
     test_date: "",
   });
 
+  // 🔹 ambil target sesuai umur siswa
   useEffect(() => {
-    getTargets().then(setTargets);
-  }, []);
+    if (student?.id) {
+      getTargetsByStudent(student.id).then(setTargets);
+    }
+  }, [student]);
 
+  // reset form setiap kali dialog ditutup
   useEffect(() => {
     if (!open) {
       setForm({ test_name: "", score: "", unit: "", remarks: "", test_date: "" });
+      setTargets([]);
     }
   }, [open]);
 
@@ -54,15 +59,42 @@ export default function InputResultsDialog({ open, onClose, student, onSave }) {
           value={form.test_name}
           onChange={handleChange}
         >
-          {targets.map((t) => (
-            <MenuItem key={t.test_name} value={t.test_name}>
-              {t.test_name} (Target {t.min_score})
-            </MenuItem>
-          ))}
+          {targets.length === 0 ? (
+            <MenuItem disabled>Tidak ada target untuk umur ini</MenuItem>
+          ) : (
+            targets.map((t) => (
+              <MenuItem key={t.test_name} value={t.test_name}>
+                {t.test_name} (Target {t.min_score} {t.unit || ""})
+              </MenuItem>
+            ))
+          )}
         </TextField>
-        <TextField fullWidth margin="dense" label="Nilai" type="number" name="score" value={form.score} onChange={handleChange} />
-        <TextField fullWidth margin="dense" label="Satuan (opsional)" name="unit" value={form.unit} onChange={handleChange} />
-        <TextField fullWidth margin="dense" label="Catatan" name="remarks" value={form.remarks} onChange={handleChange} />
+
+        <TextField
+          fullWidth
+          margin="dense"
+          label="Nilai"
+          type="number"
+          name="score"
+          value={form.score}
+          onChange={handleChange}
+        />
+        <TextField
+          fullWidth
+          margin="dense"
+          label="Satuan (opsional)"
+          name="unit"
+          value={form.unit}
+          onChange={handleChange}
+        />
+        <TextField
+          fullWidth
+          margin="dense"
+          label="Catatan"
+          name="remarks"
+          value={form.remarks}
+          onChange={handleChange}
+        />
         <TextField
           fullWidth
           margin="dense"
@@ -80,4 +112,4 @@ export default function InputResultsDialog({ open, onClose, student, onSave }) {
       </DialogActions>
     </Dialog>
   );
-            }
+}
