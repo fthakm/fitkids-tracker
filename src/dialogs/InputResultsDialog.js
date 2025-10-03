@@ -6,139 +6,164 @@ import {
   DialogActions,
   Button,
   TextField,
-  MenuItem,
+  Checkbox,
+  FormControlLabel,
+  Grid,
+  Typography,
 } from "@mui/material";
 import { getTargetsByStudent } from "../services/studentService";
 
 export default function InputResultsDialog({ open, onClose, student, onSave }) {
   const [targets, setTargets] = useState([]);
-  const [form, setForm] = useState({
-    test_name: "",
-    score: "",
-    unit: "",
-    remarks: "",
-    test_date: "",
-  });
+  const [testDate, setTestDate] = useState("");
+  const [selectedTests, setSelectedTests] = useState({}); // { test_name: { checked, score, unit, remarks } }
 
   // 🔹 Ambil target sesuai umur siswa
   useEffect(() => {
     if (student?.id) {
       getTargetsByStudent(student.id).then((data) => {
         setTargets(data || []);
+        // inisialisasi state untuk semua test
+        const init = {};
+        (data || []).forEach((t) => {
+          init[t.test_name] = {
+            checked: false,
+            score: "",
+            unit: t.unit || "",
+            remarks: "",
+          };
+        });
+        setSelectedTests(init);
       });
     }
   }, [student]);
 
-  // 🔹 Reset form setiap kali dialog ditutup atau ganti siswa
+  // 🔹 Reset form setiap kali dialog ditutup
   useEffect(() => {
     if (!open) {
-      setForm({
-        test_name: "",
-        score: "",
-        unit: "",
-        remarks: "",
-        test_date: "",
-      });
+      setTestDate("");
       setTargets([]);
+      setSelectedTests({});
     }
-  }, [open, student]);
+  }, [open]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const handleCheck = (test_name) => {
+    setSelectedTests((prev) => ({
+      ...prev,
+      [test_name]: { ...prev[test_name], checked: !prev[test_name]?.checked },
+    }));
+  };
 
-    // kalau pilih test_name → auto isi unit dari target
-    if (name === "test_name") {
-      const selected = targets.find((t) => t.test_name === value);
-      setForm((prev) => ({
-        ...prev,
-        test_name: value,
-        unit: selected?.unit || "",
-      }));
-    } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
-    }
+  const handleChange = (test_name, field, value) => {
+    setSelectedTests((prev) => ({
+      ...prev,
+      [test_name]: { ...prev[test_name], [field]: value },
+    }));
   };
 
   const handleSubmit = () => {
-    if (!form.test_name || !form.score) {
-      alert("Harap isi jenis tes dan nilai!");
+    const results = Object.entries(selectedTests)
+      .filter(([_, val]) => val.checked && val.score !== "")
+      .map(([test_name, val]) => ({
+        student_id: student.id,
+        test_name,
+        score: val.score,
+        unit: val.unit,
+        remarks: val.remarks,
+        test_date: testDate,
+      }));
+
+    if (!testDate) {
+      alert("Harap pilih tanggal tes!");
       return;
     }
 
-    onSave({
-      student_id: student.id,
-      ...form,
-    });
+    if (results.length === 0) {
+      alert("Pilih minimal satu tes dan isi nilainya!");
+      return;
+    }
+
+    onSave(results); // kirim array hasil
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth>
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle>Input Hasil Tes untuk {student?.name}</DialogTitle>
       <DialogContent dividers>
-        {/* Pilihan jenis tes sesuai umur */}
-        <TextField
-          select
-          fullWidth
-          margin="dense"
-          label="Jenis Tes"
-          name="test_name"
-          value={form.test_name}
-          onChange={handleChange}
-        >
-          {targets.length === 0 ? (
-            <MenuItem disabled>Tidak ada target untuk umur ini</MenuItem>
-          ) : (
-            targets.map((t) => (
-              <MenuItem key={t.test_name} value={t.test_name}>
-                {t.test_name} (Target {t.min_score} {t.unit || ""})
-              </MenuItem>
-            ))
-          )}
-        </TextField>
-
-        {/* Nilai */}
-        <TextField
-          fullWidth
-          margin="dense"
-          label="Nilai"
-          type="number"
-          name="score"
-          value={form.score}
-          onChange={handleChange}
-        />
-
-        {/* Unit (auto-set dari target tapi bisa diedit manual) */}
-        <TextField
-          fullWidth
-          margin="dense"
-          label="Satuan"
-          name="unit"
-          value={form.unit}
-          onChange={handleChange}
-          placeholder="contoh: kali, detik, cm"
-        />
-
-        {/* Catatan */}
-        <TextField
-          fullWidth
-          margin="dense"
-          label="Catatan"
-          name="remarks"
-          value={form.remarks}
-          onChange={handleChange}
-        />
-
         {/* Tanggal Tes */}
         <TextField
           fullWidth
           margin="dense"
           label="Tanggal Tes"
           type="date"
-          name="test_date"
-          value={form.test_date}
-          onChange={handleChange}
+          value={testDate}
+          onChange={(e) => setTestDate(e.target.value)}
           InputLabelProps={{ shrink: true }}
         />
+
+        {/* Daftar Tes */}
+        {targets.length === 0 ? (
+          <Typography variant="body2" sx={{ mt: 2 }}>
+            Tidak ada target untuk umur ini
+          </Typography>
+        ) : (
+          <Grid container spacing={2} sx={{ mt: 2 }}>
+            {targets.map((t) => (
+              <React.Fragment key={t.test_name}>
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={selectedTests[t.test_name]?.checked || false}
+                        onChange={() => handleCheck(t.test_name)}
+                      />
+                    }
+                    label={`${t.test_name} (Target: ${t.min_score} ${t.unit || ""})`}
+                  />
+                </Grid>
+
+                {selectedTests[t.test_name]?.checked && (
+                  <>
+                    <Grid item xs={3}>
+                      <TextField
+                        fullWidth
+                        margin="dense"
+                        label="Nilai"
+                        type="number"
+                        value={selectedTests[t.test_name]?.score || ""}
+                        onChange={(e) =>
+                          handleChange(t.test_name, "score", e.target.value)
+                        }
+                      />
+                    </Grid>
+                    <Grid item xs={3}>
+                      <TextField
+                        fullWidth
+                        margin="dense"
+                        label="Satuan"
+                        value={selectedTests[t.test_name]?.unit || ""}
+                        onChange={(e) =>
+                          handleChange(t.test_name, "unit", e.target.value)
+                        }
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        margin="dense"
+                        label="Catatan"
+                        value={selectedTests[t.test_name]?.remarks || ""}
+                        onChange={(e) =>
+                          handleChange(t.test_name, "remarks", e.target.value)
+                        }
+                      />
+                    </Grid>
+                  </>
+                )}
+              </React.Fragment>
+            ))}
+          </Grid>
+        )}
       </DialogContent>
 
       <DialogActions>
@@ -149,4 +174,4 @@ export default function InputResultsDialog({ open, onClose, student, onSave }) {
       </DialogActions>
     </Dialog>
   );
-}
+        }
