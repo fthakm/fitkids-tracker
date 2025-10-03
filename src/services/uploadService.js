@@ -1,3 +1,4 @@
+// src/services/storageService.js
 import { supabase } from "../supabaseClient";
 
 export async function uploadStudentPhoto(file) {
@@ -5,17 +6,21 @@ export async function uploadStudentPhoto(file) {
 
   const fileName = `${Date.now()}_${file.name}`;
   const { data, error } = await supabase.storage
-    .from("student-photos") // 👈 pastikan sudah bikin bucket di Supabase
-    .upload(fileName, file);
+    .from("student-photos") // ✅ pastikan bucket ini sudah dibuat di Supabase
+    .upload(fileName, file, {
+      cacheControl: "3600",
+      upsert: false, // biar gak overwrite kalau ada nama sama
+    });
 
   if (error) {
     console.error("Upload error:", error);
     throw error;
   }
 
-  const { data: publicUrl } = supabase.storage
+  // ambil public URL
+  const { data: publicUrlData } = supabase.storage
     .from("student-photos")
     .getPublicUrl(fileName);
 
-  return publicUrl.publicUrl;
+  return publicUrlData.publicUrl;
 }
