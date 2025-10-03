@@ -17,7 +17,7 @@ function toDbStudentPayload(student) {
     birth_date: student.birthDate ?? student.birth_date ?? null,
     birth_place: student.birthPlace ?? student.birth_place ?? null,
     address: student.address ?? null,
-    gender: normalizeGender(student.gender), // ✅ normalisasi gender
+    gender: normalizeGender(student.gender),
     phone: student.phone ?? null,
     parent_name: student.parentName ?? student.parent_name ?? null,
     parent_contact: student.parentContact ?? student.parent_contact ?? null,
@@ -55,7 +55,18 @@ export async function getStudentById(id) {
 }
 
 export async function saveStudent(student) {
-  const payload = toDbStudentPayload(student);
+  let photoUrl = student.photoUrl ?? null;
+
+  // kalau ada file foto, upload
+  if (student.photoFile) {
+    photoUrl = await uploadStudentPhoto(student.photoFile);
+  }
+
+  const payload = {
+    ...toDbStudentPayload(student),
+    photo_url: photoUrl,
+  };
+
   const { error } = await supabase.from("students").insert([payload]);
   if (error) {
     console.error("saveStudent error:", error);
@@ -63,37 +74,25 @@ export async function saveStudent(student) {
   }
 }
 
-// ✅ versi fix updateStudent (bisa hapus foto lama kalau diganti)
 export async function updateStudent(id, student) {
   if (!id) {
     console.error("updateStudent error: ID tidak ada!");
     throw new Error("ID siswa tidak valid");
   }
 
-  // ambil data lama
-  const { data: oldData } = await supabase
-    .from("students")
-    .select("photo_url")
-    .eq("id", id)
-    .single();
+  let photoUrl = student.photoUrl ?? null;
 
-  let finalPhotoUrl = student.photoUrl ?? student.photo_url ?? null;
-
-  // kalau ada file baru (bentuk File/Blob)
+  // kalau ada foto baru → upload + hapus lama
   if (student.photoFile) {
-    // hapus foto lama kalau ada
-    if (oldData?.photo_url) {
-      await deleteStudentPhoto(oldData.photo_url).catch((err) =>
-        console.warn("gagal hapus foto lama:", err)
-      );
+    if (student.oldPhotoUrl) {
+      await deleteStudentPhoto(student.oldPhotoUrl);
     }
-    // upload baru
-    finalPhotoUrl = await uploadStudentPhoto(student.photoFile, id);
+    photoUrl = await uploadStudentPhoto(student.photoFile);
   }
 
   const payload = {
     ...toDbStudentPayload(student),
-    photo_url: finalPhotoUrl,
+    photo_url: photoUrl,
   };
 
   const { error } = await supabase
@@ -110,8 +109,12 @@ export async function updateStudent(id, student) {
 export async function deleteStudent(student) {
   const id = student?.id ?? student?.student_id ?? student;
   if (!id) {
-    console.error("deleteStudent error: ID tidak ada!");
-    throw new Error("ID siswa tidak valid");
+    throw new Error("deleteStudent error: missing id");
+  }
+
+  // hapus foto juga kalau ada
+  if (student.photo_url) {
+    await deleteStudentPhoto(student.photo_url);
   }
 
   const { error } = await supabase.from("students").delete().eq("id", id);
