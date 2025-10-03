@@ -10,16 +10,27 @@ function normalizeGender(gender) {
   return null;
 }
 
+function normalizeDate(date) {
+  if (!date) return null;
+  try {
+    const d = new Date(date);
+    if (isNaN(d)) return null;
+    return d.toISOString().split("T")[0]; // format YYYY-MM-DD
+  } catch {
+    return null;
+  }
+}
+
 function toDbStudentPayload(student) {
   return {
     name: student.name ?? null,
-    birth_date: student.birthDate ?? student.birth_date ?? null,
+    birth_date: normalizeDate(student.birthDate ?? student.birth_date), // ✅ pastikan format tanggal valid
     birth_place: student.birthPlace ?? student.birth_place ?? null,
     address: student.address ?? null,
     gender: normalizeGender(student.gender), // ✅ normalisasi gender
-    phone: student.phone ?? null,
+    phone: student.phone ? String(student.phone) : null, // ✅ pastikan string
     parent_name: student.parentName ?? student.parent_name ?? null,
-    parent_contact: student.parentContact ?? student.parent_contact ?? null,
+    parent_contact: student.parentContact ? String(student.parentContact) : null, // ✅ pastikan string
     photo_url: student.photoUrl ?? student.photo_url ?? null,
   };
 }
@@ -86,7 +97,7 @@ export async function saveResult(result) {
     score: result.score,
     unit: result.unit ?? null,
     remarks: result.remarks ?? null,
-    test_date: result.test_date ?? null,
+    test_date: normalizeDate(result.test_date), // ✅ format tanggal test
   };
   const { error } = await supabase.from("results").insert([payload]);
   if (error) {
