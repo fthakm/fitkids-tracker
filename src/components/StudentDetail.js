@@ -1,47 +1,23 @@
-import React, { useState } from "react";
-import { Box, Typography, Button } from "@mui/material";
-import InputResultsDialog from "../dialogs/InputResultsDialog";
-import { exportPDF, exportExcel } from "../utils/exportUtils";
-import AddEditStudentDialog from "../dialogs/AddEditStudentDialog";
+import React from "react";
+import { Paper, Typography, Box } from "@mui/material";
 
-export default function StudentDetail({ student, setStudents, showSnackbar, onClose }) {
-  const [openInput, setOpenInput] = useState(false);
-  const [openEdit, setOpenEdit] = useState(false);
+export default function StudentDetail({ student }) {
+  if (!student) {
+    return (
+      <Paper sx={{ p: 3 }}>
+        <Typography>Belum ada siswa dipilih</Typography>
+      </Paper>
+    );
+  }
 
   return (
-    <Box mt={2} p={2} sx={{ border: "1px solid #ccc", borderRadius: 2 }}>
-      <Typography variant="h6">{student.name}</Typography>
-      <Typography>Usia: {student.age}</Typography>
-      <Typography>Tempat tinggal: {student.address || "-"}</Typography>
-      <Typography>Jenis kelamin: {student.gender || "-"}</Typography>
-      <Box mt={1}>
-        <Button sx={{ mr: 1 }} variant="outlined" onClick={() => exportPDF(student)}>Export PDF</Button>
-        <Button sx={{ mr: 1 }} variant="outlined" onClick={() => exportExcel(student)}>Export Excel</Button>
-        <Button sx={{ mr: 1 }} variant="contained" onClick={() => setOpenInput(true)}>Input Nilai</Button>
-        <Button variant="contained" color="secondary" onClick={() => setOpenEdit(true)}>Edit</Button>
+    <Paper sx={{ p: 3 }}>
+      <Typography variant="h6">Detail Siswa</Typography>
+      <Box mt={2}>
+        <Typography><strong>Nama:</strong> {student?.name || "-"}</Typography>
+        <Typography><strong>Usia:</strong> {student?.age || "-"}</Typography>
+        <Typography><strong>Skor:</strong> {student?.score || "-"}</Typography>
       </Box>
-
-      {openInput && (
-        <InputResultsDialog
-          student={student}
-          setStudents={setStudents}
-          onClose={() => setOpenInput(false)}
-          showSnackbar={showSnackbar}
-        />
-      )}
-
-      {openEdit && (
-        <AddEditStudentDialog
-          open={openEdit}
-          onClose={() => setOpenEdit(false)}
-          students={setStudents}
-          setStudents={setStudents}
-          student={student}
-          showSnackbar={showSnackbar}
-        />
-      )}
-
-      <Button sx={{ mt: 2 }} onClick={onClose}>Tutup</Button>
-    </Box>
+    </Paper>
   );
-  }
+    }
