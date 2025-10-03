@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { 
-  Box, AppBar, Toolbar, Typography, Tabs, Tab, 
-  Container, Paper, Button, Snackbar, Alert, 
+import {
+  Box, AppBar, Toolbar, Typography, Tabs, Tab,
+  Container, Paper, Button, Snackbar, Alert,
   Select, MenuItem
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import { 
-  getStudents, saveStudent, updateStudent, 
+import {
+  getStudents, saveStudent, updateStudent,
   deleteStudent, saveResult
 } from "./services/studentService";
 import AddEditStudentDialog from "./dialogs/AddEditStudentDialog";
@@ -15,9 +15,12 @@ import StudentList from "./components/StudentList";
 import Dashboard from "./components/Dashboard";
 import Leaderboard from "./components/Leaderboard";
 import StudentDialog from "./components/StudentDialog";
+import EvaluationsPage from "./pages/EvaluationsPage";
 
-export default function App() {
-  const [tab, setTab] = useState(0);
+// 🆕 React Router
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from "react-router-dom";
+
+function AppContent() {
   const [students, setStudents] = useState([]);
   const [openAddEdit, setOpenAddEdit] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
@@ -26,7 +29,6 @@ export default function App() {
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const [filterAge, setFilterAge] = useState("");
 
-  // 🆕 State untuk StudentDialog
   const [openStudentDialog, setOpenStudentDialog] = useState(false);
   const [detailStudent, setDetailStudent] = useState(null);
 
@@ -47,7 +49,6 @@ export default function App() {
   const handleAddEditStudent = async (student, isEdit) => {
     try {
       if (isEdit) {
-        // ✅ pastikan id dikirim
         if (!student.id && editingStudent?.id) {
           student.id = editingStudent.id;
         }
@@ -94,13 +95,20 @@ export default function App() {
     }
   };
 
-  // 🆕 Handler untuk buka StudentDialog
   const handleOpenStudentDialog = (student) => {
     setDetailStudent(student);
     setOpenStudentDialog(true);
   };
 
   const filteredStudents = filterAge ? students.filter(s => s.age === filterAge) : students;
+
+  // 🆕 React Router Tabs
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const tabMap = ["/dashboard", "/siswa", "/leaderboard", "/evaluasi"];
+  const currentTab = tabMap.indexOf(location.pathname);
+  const tabValue = currentTab === -1 ? 0 : currentTab;
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "#f7f9fa" }}>
@@ -112,8 +120,8 @@ export default function App() {
       <Container maxWidth="lg" sx={{ mt: 3 }}>
         <Paper elevation={2} sx={{ borderRadius: 2 }}>
           <Tabs
-            value={tab}
-            onChange={(_, v) => setTab(v)}
+            value={tabValue}
+            onChange={(_, v) => navigate(tabMap[v])}
             indicatorColor="primary"
             textColor="primary"
             variant="fullWidth"
@@ -121,39 +129,46 @@ export default function App() {
             <Tab label="Dashboard" />
             <Tab label="Siswa" />
             <Tab label="Leaderboard" />
+            <Tab label="Evaluasi" />
           </Tabs>
         </Paper>
 
-        {tab === 0 && <Dashboard students={students} />}
-        {tab === 1 && (
-          <Box mt={3}>
-            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-              <Select value={filterAge} onChange={e => setFilterAge(e.target.value)} displayEmpty>
-                <MenuItem value="">Semua Usia</MenuItem>
-                <MenuItem value="6-8">6-8</MenuItem>
-                <MenuItem value="9-11">9-11</MenuItem>
-                <MenuItem value="12-15">12-15</MenuItem>
-                <MenuItem value="16+">16+</MenuItem>
-              </Select>
-              <Button 
-                variant="contained" 
-                startIcon={<AddIcon />} 
-                onClick={() => { setEditingStudent(null); setOpenAddEdit(true); }}
-              >
-                Tambah Siswa
-              </Button>
-            </Box>
-            <StudentList
-              students={filteredStudents}
-              onEdit={student => { setEditingStudent(student); setOpenAddEdit(true); }}
-              onDelete={handleDelete}
-              onInput={handleOpenInput}
-              // 🆕 Tambahin prop untuk lihat detail
-              onView={handleOpenStudentDialog}
-            />
-          </Box>
-        )}
-        {tab === 2 && <Leaderboard students={students} />}
+        <Routes>
+          <Route path="/dashboard" element={<Dashboard students={students} />} />
+          <Route
+            path="/siswa"
+            element={
+              <Box mt={3}>
+                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+                  <Select value={filterAge} onChange={e => setFilterAge(e.target.value)} displayEmpty>
+                    <MenuItem value="">Semua Usia</MenuItem>
+                    <MenuItem value="6-8">6-8</MenuItem>
+                    <MenuItem value="9-11">9-11</MenuItem>
+                    <MenuItem value="12-15">12-15</MenuItem>
+                    <MenuItem value="16+">16+</MenuItem>
+                  </Select>
+                  <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={() => { setEditingStudent(null); setOpenAddEdit(true); }}
+                  >
+                    Tambah Siswa
+                  </Button>
+                </Box>
+                <StudentList
+                  students={filteredStudents}
+                  onEdit={student => { setEditingStudent(student); setOpenAddEdit(true); }}
+                  onDelete={handleDelete}
+                  onInput={handleOpenInput}
+                  onView={handleOpenStudentDialog}
+                />
+              </Box>
+            }
+          />
+          <Route path="/leaderboard" element={<Leaderboard students={students} />} />
+          <Route path="/evaluasi" element={<EvaluationsPage />} />
+          <Route path="*" element={<Dashboard students={students} />} />
+        </Routes>
 
         <AddEditStudentDialog
           open={openAddEdit}
@@ -168,7 +183,6 @@ export default function App() {
           onSave={handleSaveResults}
         />
 
-        {/* 🆕 StudentDialog */}
         <StudentDialog
           open={openStudentDialog}
           onClose={() => setOpenStudentDialog(false)}
@@ -185,5 +199,13 @@ export default function App() {
         </Snackbar>
       </Container>
     </Box>
+  );
+}
+
+export default function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
   );
               }
