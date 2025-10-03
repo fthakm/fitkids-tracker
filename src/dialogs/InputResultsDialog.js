@@ -1,48 +1,65 @@
+// src/dialogs/InputResultsDialog.js
 import React, { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-} from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, MenuItem } from "@mui/material";
+import { getTargets } from "../services/studentService";
 
 export default function InputResultsDialog({ open, onClose, student, onSave }) {
-  const [results, setResults] = useState({ score: "" });
+  const [targets, setTargets] = useState([]);
+  const [form, setForm] = useState({ test_name: "", score: "" });
 
   useEffect(() => {
-    setResults({ score: "" });
-  }, [student]);
+    if (open) {
+      getTargets().then(setTargets).catch(console.error);
+    }
+  }, [open]);
 
   const handleChange = (e) => {
-    setResults({ ...results, [e.target.name]: e.target.value });
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = () => {
-    if (!student) return;
-    onSave({ ...results, student_id: student.id });
+    if (!form.test_name || !form.score) return;
+    onSave({
+      student_id: student.id,
+      test_name: form.test_name,
+      score: Number(form.score),
+    });
+    setForm({ test_name: "", score: "" });
   };
-
-  if (!student) return null;
 
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Input Hasil untuk {student?.name || "Siswa"}</DialogTitle>
+      <DialogTitle>Input Hasil Penilaian</DialogTitle>
       <DialogContent>
         <TextField
-          label="Skor"
-          name="score"
-          value={results.score}
+          select
+          label="Jenis Tes"
+          name="test_name"
+          value={form.test_name}
           onChange={handleChange}
           fullWidth
-          margin="dense"
+          margin="normal"
+        >
+          {targets.map((t) => (
+            <MenuItem key={t.id} value={t.test_name}>
+              {t.test_name} (Target: {t.min_score})
+            </MenuItem>
+          ))}
+        </TextField>
+        <TextField
+          label="Nilai"
+          name="score"
+          type="number"
+          value={form.score}
+          onChange={handleChange}
+          fullWidth
+          margin="normal"
         />
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Batal</Button>
-        <Button onClick={handleSubmit} variant="contained">Simpan</Button>
+        <Button variant="contained" onClick={handleSubmit}>Simpan</Button>
       </DialogActions>
     </Dialog>
   );
-            }
+                       }
