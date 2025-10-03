@@ -2,18 +2,19 @@ import React, { useEffect, useState } from "react";
 import { 
   Box, AppBar, Toolbar, Typography, Tabs, Tab, 
   Container, Paper, Button, Snackbar, Alert, 
-  Select, MenuItem 
+  Select, MenuItem
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { 
   getStudents, saveStudent, updateStudent, 
-  deleteStudent, saveResult  // <-- pakai saveResult singular
+  deleteStudent, saveResult
 } from "./services/studentService";
 import AddEditStudentDialog from "./dialogs/AddEditStudentDialog";
 import InputResultsDialog from "./dialogs/InputResultsDialog";
 import StudentList from "./components/StudentList";
 import Dashboard from "./components/Dashboard";
 import Leaderboard from "./components/Leaderboard";
+import StudentDialog from "./components/StudentDialog";
 
 export default function App() {
   const [tab, setTab] = useState(0);
@@ -24,6 +25,10 @@ export default function App() {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const [filterAge, setFilterAge] = useState("");
+
+  // 🆕 State untuk StudentDialog
+  const [openStudentDialog, setOpenStudentDialog] = useState(false);
+  const [detailStudent, setDetailStudent] = useState(null);
 
   const fetchStudents = async () => {
     try {
@@ -73,9 +78,9 @@ export default function App() {
     setOpenInput(true);
   };
 
-  const handleSaveResults = async (result) => {  // result dari InputResultsDialog
+  const handleSaveResults = async (result) => {
     try {
-      await saveResult(result);  // <--- singular
+      await saveResult(result);
       setSnackbar({ open: true, message: "Hasil penilaian tersimpan", severity: "success" });
       setOpenInput(false);
       fetchStudents();
@@ -85,23 +90,19 @@ export default function App() {
     }
   };
 
-  const filteredStudents = filterAge
-    ? students.filter((s) => {
-        if (filterAge === "6-8") return s.age >= 6 && s.age <= 8;
-        if (filterAge === "9-11") return s.age >= 9 && s.age <= 11;
-        if (filterAge === "12-15") return s.age >= 12 && s.age <= 15;
-        if (filterAge === "16+") return s.age >= 16;
-        return true;
-      })
-    : students;
+  // 🆕 Handler untuk buka StudentDialog
+  const handleOpenStudentDialog = (student) => {
+    setDetailStudent(student);
+    setOpenStudentDialog(true);
+  };
+
+  const filteredStudents = filterAge ? students.filter(s => s.age === filterAge) : students;
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "#f7f9fa" }}>
       <AppBar position="static">
         <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            FitKids Tracker
-          </Typography>
+          <Typography variant="h6" sx={{ flexGrow: 1 }}>FitKids Tracker</Typography>
         </Toolbar>
       </AppBar>
       <Container maxWidth="lg" sx={{ mt: 3 }}>
@@ -123,32 +124,28 @@ export default function App() {
         {tab === 1 && (
           <Box mt={3}>
             <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
-              <Select value={filterAge} onChange={(e) => setFilterAge(e.target.value)} displayEmpty>
+              <Select value={filterAge} onChange={e => setFilterAge(e.target.value)} displayEmpty>
                 <MenuItem value="">Semua Usia</MenuItem>
                 <MenuItem value="6-8">6-8</MenuItem>
                 <MenuItem value="9-11">9-11</MenuItem>
                 <MenuItem value="12-15">12-15</MenuItem>
                 <MenuItem value="16+">16+</MenuItem>
               </Select>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => {
-                  setEditingStudent(null);
-                  setOpenAddEdit(true);
-                }}
+              <Button 
+                variant="contained" 
+                startIcon={<AddIcon />} 
+                onClick={() => { setEditingStudent(null); setOpenAddEdit(true); }}
               >
                 Tambah Siswa
               </Button>
             </Box>
             <StudentList
               students={filteredStudents}
-              onEdit={(student) => {
-                setEditingStudent(student);
-                setOpenAddEdit(true);
-              }}
+              onEdit={student => { setEditingStudent(student); setOpenAddEdit(true); }}
               onDelete={handleDelete}
               onInput={handleOpenInput}
+              // 🆕 Tambahin prop untuk lihat detail
+              onView={handleOpenStudentDialog}
             />
           </Box>
         )}
@@ -167,6 +164,13 @@ export default function App() {
           onSave={handleSaveResults}
         />
 
+        {/* 🆕 StudentDialog */}
+        <StudentDialog
+          open={openStudentDialog}
+          onClose={() => setOpenStudentDialog(false)}
+          student={detailStudent}
+        />
+
         <Snackbar
           open={snackbar.open}
           autoHideDuration={2500}
@@ -178,4 +182,4 @@ export default function App() {
       </Container>
     </Box>
   );
-          }
+              }
