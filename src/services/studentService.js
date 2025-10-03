@@ -1,13 +1,22 @@
 // src/services/studentService.js
 import { supabase } from "../supabaseClient";
 
+// helper buat mapping gender
+function normalizeGender(gender) {
+  if (!gender) return null;
+  const g = gender.toString().toLowerCase();
+  if (g === "l" || g === "male" || g === "laki-laki") return "L";
+  if (g === "p" || g === "female" || g === "perempuan") return "P";
+  return null;
+}
+
 function toDbStudentPayload(student) {
   return {
     name: student.name ?? null,
     birth_date: student.birthDate ?? student.birth_date ?? null,
     birth_place: student.birthPlace ?? student.birth_place ?? null,
     address: student.address ?? null,
-    gender: student.gender ?? null,
+    gender: normalizeGender(student.gender), // ✅ normalisasi gender
     phone: student.phone ?? null,
     parent_name: student.parentName ?? student.parent_name ?? null,
     parent_contact: student.parentContact ?? student.parent_contact ?? null,
