@@ -31,6 +31,7 @@ import Dashboard from "./components/Dashboard";
 import Leaderboard from "./components/Leaderboard";
 import StudentDialog from "./components/StudentDialog";
 import EvaluationsPage from "./pages/EvaluationsPage";
+import { getAgeGroup } from "./utils/evaluationHelpers";
 
 import {
   BrowserRouter as Router,
