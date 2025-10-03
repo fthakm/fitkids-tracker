@@ -9,6 +9,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+console.log("URL:", process.env.REACT_APP_SUPABASE_URL);
+console.log("KEY:", process.env.REACT_APP_SUPABASE_ANON_KEY?.slice(0,5));
+
 // Hanya log di dev mode
 if (process.env.NODE_ENV !== "production") {
   console.log("✅ SUPABASE_URL:", supabaseUrl);
