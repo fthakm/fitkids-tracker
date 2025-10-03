@@ -1,63 +1,38 @@
+// src/components/Dashboard.js
 import React, { useEffect, useState } from "react";
-import { supabase } from "../supabaseClient";
+import { Card, CardContent, Typography, Grid, Chip } from "@mui/material";
+import { getStudentDashboardData } from "../services/studentService";
 
-export default function Dashboard({ students }) {
-  const [results, setResults] = useState([]);
-  const [targets, setTargets] = useState([]);
+export default function Dashboard() {
+  const [data, setData] = useState([]);
 
   useEffect(() => {
-    loadData();
-  }, [students]);
-
-  async function loadData() {
-    const { data: res } = await supabase.from("results").select("*");
-    setResults(res || []);
-
-    const { data: tgs } = await supabase.from("targets").select("*");
-    setTargets(tgs || []);
-  }
-
-  function evaluate(studentId) {
-    const studentResults = results.filter(r => r.student_id === studentId);
-
-    return studentResults.map(r => {
-      const target = targets.find(t => t.test_name === r.test_name);
-      if (!target) return { ...r, status: "❓ Belum ada target" };
-
-      if (r.score >= target.min_score) {
-        return { ...r, status: "✅ Lulus", recommendation: "Pertahankan!" };
-      } else {
-        return {
-          ...r,
-          status: "❌ Belum Lulus",
-          recommendation: `Latihan tambahan untuk ${r.test_name}`,
-        };
-      }
-    });
-  }
+    getStudentDashboardData()
+      .then(setData)
+      .catch(console.error);
+  }, []);
 
   return (
-    <div className="mt-4">
-      <h2 className="font-bold text-lg mb-2">📋 Dashboard</h2>
-      {students.map(s => (
-        <div key={s.id} className="border p-2 mb-3 rounded">
-          <p className="font-semibold">
-            {s.name} ({s.gender}) - {s.address}
-          </p>
-          <p className="text-sm">Lahir: {s.birthdate}</p>
-
-          <ul className="mt-2">
-            {evaluate(s.id).map(r => (
-              <li key={r.id}>
-                {r.test_name}: {r.score} → {r.status} <br />
-                <span className="text-sm text-gray-600">
-                  {r.recommendation}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
+    <Grid container spacing={2} sx={{ mt: 2 }}>
+      {data.map((row) => (
+        <Grid item xs={12} md={6} key={row.student_id}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6">{row.name}</Typography>
+              <Typography variant="body2">Umur: {row.age}</Typography>
+              <Typography variant="body2">Tes: {row.test_name}</Typography>
+              <Typography variant="body2">
+                Nilai: {row.score} / Target {row.min_score}
+              </Typography>
+              {row.score >= row.min_score ? (
+                <Chip label="✅ Lulus Target" color="success" />
+              ) : (
+                <Chip label="⚠️ Belum Tercapai" color="warning" />
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
       ))}
-    </div>
+    </Grid>
   );
 }
