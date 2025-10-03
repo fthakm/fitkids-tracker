@@ -4,12 +4,14 @@ import { supabase } from "../supabaseClient";
 export async function uploadStudentPhoto(file) {
   if (!file) return null;
 
-  const fileName = `${Date.now()}_${file.name}`;
+  const ext = file.name.split(".").pop(); // ambil ekstensi
+  const fileName = `${Date.now()}.${ext}`; // biar lebih clean daripada pakai nama asli
+
   const { data, error } = await supabase.storage
-    .from("student-photos") // ✅ pastikan bucket ini sudah dibuat di Supabase
+    .from("student-photos")
     .upload(fileName, file, {
       cacheControl: "3600",
-      upsert: false, // biar gak overwrite kalau ada nama sama
+      upsert: false,
     });
 
   if (error) {
@@ -17,7 +19,6 @@ export async function uploadStudentPhoto(file) {
     throw error;
   }
 
-  // ambil public URL
   const { data: publicUrlData } = supabase.storage
     .from("student-photos")
     .getPublicUrl(fileName);
