@@ -11,6 +11,7 @@ import {
 
 export default function AddEditStudentDialog({ open, onClose, onSave, student }) {
   const [form, setForm] = useState({
+    id: "", // 🆕 simpan id juga
     name: "",
     birthDate: "",
     birthPlace: "",
@@ -25,6 +26,7 @@ export default function AddEditStudentDialog({ open, onClose, onSave, student })
   useEffect(() => {
     if (student) {
       setForm({
+        id: student.id || "", // 🆕 taruh id biar ke-pass saat edit
         name: student.name || "",
         birthDate: student.birthDate || student.birth_date || "",
         birthPlace: student.birthPlace || student.birth_place || "",
@@ -37,6 +39,7 @@ export default function AddEditStudentDialog({ open, onClose, onSave, student })
       });
     } else {
       setForm({
+        id: "", // 🆕 reset id kalau tambah baru
         name: "",
         birthDate: "",
         birthPlace: "",
@@ -55,7 +58,7 @@ export default function AddEditStudentDialog({ open, onClose, onSave, student })
   };
 
   const handleSubmit = () => {
-    onSave(form, !!student);
+    onSave(form, !!student); // ✅ sekarang form selalu ada id kalau edit
   };
 
   return (
@@ -98,4 +101,4 @@ export default function AddEditStudentDialog({ open, onClose, onSave, student })
       </DialogActions>
     </Dialog>
   );
-}
+            }
