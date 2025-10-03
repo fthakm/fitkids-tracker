@@ -1,51 +1,82 @@
 import React from "react";
 import {
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Paper, IconButton, Tooltip
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+  Tooltip,
+  Typography,
 } from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
+
+import ManageAccountsIcon from "@mui/icons-material/ManageAccounts"; // ganti Edit
 import DeleteIcon from "@mui/icons-material/Delete";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 
 export default function StudentList({ students, onEdit, onDelete, onInput, onView }) {
   return (
-    <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
-      <Table>
+    <TableContainer
+      component={Paper}
+      sx={{
+        borderRadius: 3,
+        overflowX: "auto",
+      }}
+    >
+      <Table stickyHeader>
         <TableHead>
           <TableRow>
-            <TableCell>Nama</TableCell>
-            <TableCell>Usia</TableCell>
-            <TableCell>Gender</TableCell>
-            <TableCell>Telepon</TableCell>
-            <TableCell>Orang Tua</TableCell>
-            <TableCell align="center">Aksi</TableCell>
+            <TableCell><Typography fontWeight="bold">Nama</Typography></TableCell>
+            <TableCell><Typography fontWeight="bold">Usia</Typography></TableCell>
+            <TableCell><Typography fontWeight="bold">Gender</Typography></TableCell>
+            <TableCell><Typography fontWeight="bold">Telepon</Typography></TableCell>
+            <TableCell><Typography fontWeight="bold">Orang Tua</Typography></TableCell>
+            <TableCell align="center"><Typography fontWeight="bold">Aksi</Typography></TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {students.length === 0 ? (
             <TableRow>
               <TableCell colSpan={6} align="center">
-                Belum ada data siswa
+                <Typography variant="body2" color="text.secondary">
+                  Belum ada data siswa
+                </Typography>
               </TableCell>
             </TableRow>
           ) : (
-            students.map((student) => (
-              <TableRow key={student.id}>
-                <TableCell>{student.name}</TableCell>
+            students.map((student, index) => (
+              <TableRow
+                key={student.id}
+                hover
+                sx={{
+                  backgroundColor: index % 2 === 0 ? "action.hover" : "inherit",
+                }}
+              >
+                <TableCell>
+                  <Typography fontWeight="600" noWrap>
+                    {student.name}
+                  </Typography>
+                </TableCell>
                 <TableCell>{student.age}</TableCell>
                 <TableCell>{student.gender}</TableCell>
-                <TableCell>{student.phone}</TableCell>
-                <TableCell>{student.parent_name || student.parentName}</TableCell>
+                <TableCell sx={{ maxWidth: 120, whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
+                  {student.phone}
+                </TableCell>
+                <TableCell sx={{ maxWidth: 140, whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
+                  {student.parent_name || student.parentName}
+                </TableCell>
                 <TableCell align="center">
                   <Tooltip title="Lihat Detail">
                     <IconButton onClick={() => onView(student)} color="info">
                       <VisibilityIcon />
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title="Edit">
+                  <Tooltip title="Edit Data Siswa">
                     <IconButton onClick={() => onEdit(student)} color="primary">
-                      <EditIcon />
+                      <ManageAccountsIcon />
                     </IconButton>
                   </Tooltip>
                   <Tooltip title="Input Hasil Tes">
@@ -66,4 +97,4 @@ export default function StudentList({ students, onEdit, onDelete, onInput, onVie
       </Table>
     </TableContainer>
   );
-            }
+                }
