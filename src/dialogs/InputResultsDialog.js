@@ -20,26 +20,51 @@ export default function InputResultsDialog({ open, onClose, student, onSave }) {
     test_date: "",
   });
 
-  // 🔹 ambil target sesuai umur siswa
+  // 🔹 Ambil target sesuai umur siswa
   useEffect(() => {
     if (student?.id) {
-      getTargetsByStudent(student.id).then(setTargets);
+      getTargetsByStudent(student.id).then((data) => {
+        setTargets(data || []);
+      });
     }
   }, [student]);
 
-  // reset form setiap kali dialog ditutup
+  // 🔹 Reset form setiap kali dialog ditutup atau ganti siswa
   useEffect(() => {
     if (!open) {
-      setForm({ test_name: "", score: "", unit: "", remarks: "", test_date: "" });
+      setForm({
+        test_name: "",
+        score: "",
+        unit: "",
+        remarks: "",
+        test_date: "",
+      });
       setTargets([]);
     }
-  }, [open]);
+  }, [open, student]);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    // kalau pilih test_name → auto isi unit dari target
+    if (name === "test_name") {
+      const selected = targets.find((t) => t.test_name === value);
+      setForm((prev) => ({
+        ...prev,
+        test_name: value,
+        unit: selected?.unit || "",
+      }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = () => {
+    if (!form.test_name || !form.score) {
+      alert("Harap isi jenis tes dan nilai!");
+      return;
+    }
+
     onSave({
       student_id: student.id,
       ...form,
@@ -50,6 +75,7 @@ export default function InputResultsDialog({ open, onClose, student, onSave }) {
     <Dialog open={open} onClose={onClose} fullWidth>
       <DialogTitle>Input Hasil Tes untuk {student?.name}</DialogTitle>
       <DialogContent dividers>
+        {/* Pilihan jenis tes sesuai umur */}
         <TextField
           select
           fullWidth
@@ -70,6 +96,7 @@ export default function InputResultsDialog({ open, onClose, student, onSave }) {
           )}
         </TextField>
 
+        {/* Nilai */}
         <TextField
           fullWidth
           margin="dense"
@@ -79,14 +106,19 @@ export default function InputResultsDialog({ open, onClose, student, onSave }) {
           value={form.score}
           onChange={handleChange}
         />
+
+        {/* Unit (auto-set dari target tapi bisa diedit manual) */}
         <TextField
           fullWidth
           margin="dense"
-          label="Satuan (opsional)"
+          label="Satuan"
           name="unit"
           value={form.unit}
           onChange={handleChange}
+          placeholder="contoh: kali, detik, cm"
         />
+
+        {/* Catatan */}
         <TextField
           fullWidth
           margin="dense"
@@ -95,6 +127,8 @@ export default function InputResultsDialog({ open, onClose, student, onSave }) {
           value={form.remarks}
           onChange={handleChange}
         />
+
+        {/* Tanggal Tes */}
         <TextField
           fullWidth
           margin="dense"
@@ -106,9 +140,12 @@ export default function InputResultsDialog({ open, onClose, student, onSave }) {
           InputLabelProps={{ shrink: true }}
         />
       </DialogContent>
+
       <DialogActions>
         <Button onClick={onClose}>Batal</Button>
-        <Button onClick={handleSubmit} variant="contained">Simpan</Button>
+        <Button onClick={handleSubmit} variant="contained">
+          Simpan
+        </Button>
       </DialogActions>
     </Dialog>
   );
