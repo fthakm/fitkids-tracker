@@ -1,29 +1,31 @@
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogTitle, DialogContent, TextField, Select, MenuItem, DialogActions, Button } from "@mui/material";
-import { validateStudent } from "../utils/validation";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Button,
+} from "@mui/material";
 
-export default function AddEditStudentDialog({ open, onClose, students, setStudents, student, showSnackbar }) {
-  const [form, setForm] = useState({ name: "", age: "6-8", address: "", gender: "" });
+export default function AddEditStudentDialog({ open, onClose, onSave, student }) {
+  const [form, setForm] = useState({ name: "", age: "" });
 
   useEffect(() => {
-    if (student) setForm(student);
+    if (student) {
+      setForm({ name: student.name || "", age: student.age || "" });
+    } else {
+      setForm({ name: "", age: "" });
+    }
   }, [student]);
 
-  const handleSave = () => {
-    const error = validateStudent(form);
-    if (error) {
-      showSnackbar(error, "error");
-      return;
-    }
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
-    if (student) {
-      setStudents(students.map(s => s.id === student.id ? form : s));
-      showSnackbar("Data siswa diperbarui");
-    } else {
-      setStudents([...students, { ...form, id: Date.now(), results: [], badge: "" }]);
-      showSnackbar("Siswa ditambahkan");
-    }
-    onClose();
+  const handleSubmit = () => {
+    if (!form.name.trim()) return;
+    onSave({ ...student, ...form }, !!student);
   };
 
   return (
@@ -32,34 +34,25 @@ export default function AddEditStudentDialog({ open, onClose, students, setStude
       <DialogContent>
         <TextField
           label="Nama"
-          fullWidth
-          margin="dense"
+          name="name"
           value={form.name}
-          onChange={e => setForm({ ...form, name: e.target.value })}
-        />
-        <Select fullWidth value={form.age} onChange={e => setForm({ ...form, age: e.target.value })} sx={{ mt: 1 }}>
-          <MenuItem value="6-8">6-8</MenuItem>
-          <MenuItem value="9-11">9-11</MenuItem>
-          <MenuItem value="12-15">12-15</MenuItem>
-          <MenuItem value="16+">16+</MenuItem>
-        </Select>
-        <TextField
-          label="Tempat Tinggal"
+          onChange={handleChange}
           fullWidth
           margin="dense"
-          value={form.address}
-          onChange={e => setForm({ ...form, address: e.target.value })}
         />
-        <Select fullWidth value={form.gender} onChange={e => setForm({ ...form, gender: e.target.value })} sx={{ mt: 1 }}>
-          <MenuItem value="">Pilih Jenis Kelamin</MenuItem>
-          <MenuItem value="Laki-laki">Laki-laki</MenuItem>
-          <MenuItem value="Perempuan">Perempuan</MenuItem>
-        </Select>
+        <TextField
+          label="Usia"
+          name="age"
+          value={form.age}
+          onChange={handleChange}
+          fullWidth
+          margin="dense"
+        />
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Batal</Button>
-        <Button variant="contained" onClick={handleSave}>Simpan</Button>
+        <Button onClick={handleSubmit} variant="contained">Simpan</Button>
       </DialogActions>
     </Dialog>
   );
-            }
+}
