@@ -210,11 +210,11 @@ export async function getTargetsByStudent(studentId) {
 
     if (!ageCategory) return [];
 
-    // ambil target dari tabel sesuai kategori usia
+    // ambil target dari tabel sesuai kolom age_group
     const { data: targets, error: targetsError } = await supabase
       .from("targets")
       .select("*")
-      .eq("age_category", ageCategory);
+      .eq("age_group", ageCategory);
 
     if (targetsError) throw targetsError;
 
@@ -251,4 +251,4 @@ export async function getStudentDashboardData() {
     return [];
   }
   return data || [];
-}
+  }
