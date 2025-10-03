@@ -21,6 +21,7 @@ import {
   Divider,
   CssBaseline,
   useMediaQuery,
+  Tooltip,
 } from "@mui/material";
 
 import { ThemeProvider, createTheme } from "@mui/material/styles";
@@ -211,7 +212,11 @@ function AppContent({ toggleTheme, darkMode }) {
       }}
     >
       <Toolbar>
-        <Typography variant="h6" sx={{ fontWeight: "bold", color: "primary.main" }}>
+        <Typography
+          variant="h6"
+          sx={{ fontWeight: "bold", color: "primary.main", flexGrow: 1 }}
+          noWrap
+        >
           FitKids
         </Typography>
       </Toolbar>
@@ -237,7 +242,13 @@ function AppContent({ toggleTheme, darkMode }) {
               }}
             >
               <ListItemIcon sx={{ color: "inherit" }}>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.label} />
+              <ListItemText
+                primary={item.label}
+                primaryTypographyProps={{
+                  noWrap: true,
+                  sx: { fontWeight: 500 },
+                }}
+              />
             </ListItemButton>
           </ListItem>
         ))}
@@ -265,7 +276,9 @@ function AppContent({ toggleTheme, darkMode }) {
         sx={{
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           ml: { sm: `${drawerWidth}px` },
-          background: "linear-gradient(90deg, #1976d2, #42a5f5)",
+          background: darkMode
+            ? "linear-gradient(90deg, #0d47a1, #1976d2)"
+            : "linear-gradient(90deg, #1976d2, #42a5f5)",
         }}
       >
         <Toolbar>
@@ -279,7 +292,11 @@ function AppContent({ toggleTheme, darkMode }) {
               <MenuIcon />
             </IconButton>
           )}
-          <Typography variant="h6" noWrap sx={{ flexGrow: 1, fontWeight: "bold" }}>
+          <Typography
+            variant="h6"
+            noWrap
+            sx={{ flexGrow: 1, fontWeight: "bold", letterSpacing: 0.5 }}
+          >
             FitKids Tracker
           </Typography>
         </Toolbar>
@@ -338,7 +355,7 @@ function AppContent({ toggleTheme, darkMode }) {
               borderRadius: 3,
               p: 3,
               background: darkMode
-                ? "linear-gradient(180deg, #121212, #1e1e1e)"
+                ? "linear-gradient(180deg, #1e1e1e, #2a2a2a)"
                 : "linear-gradient(180deg, #fff, #f9f9f9)",
             }}
           >
@@ -455,8 +472,21 @@ export default function App() {
           secondary: {
             main: "#ff9800",
           },
+          background: {
+            default: darkMode ? "#121212" : "#fafafa",
+            paper: darkMode ? "#1e1e1e" : "#fff",
+          },
+          text: {
+            primary: darkMode ? "#ffffff" : "#000000",
+            secondary: darkMode ? "#bbbbbb" : "#555555",
+          },
         },
         shape: { borderRadius: 12 },
+        typography: {
+          fontFamily: "Inter, Roboto, Arial, sans-serif",
+          h6: { fontWeight: 600 },
+          body1: { lineHeight: 1.6 },
+        },
       }),
     [darkMode]
   );
@@ -472,4 +502,4 @@ export default function App() {
       </Router>
     </ThemeProvider>
   );
-}
+              }
