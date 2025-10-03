@@ -47,6 +47,10 @@ export default function App() {
   const handleAddEditStudent = async (student, isEdit) => {
     try {
       if (isEdit) {
+        // ✅ pastikan id dikirim
+        if (!student.id && editingStudent?.id) {
+          student.id = editingStudent.id;
+        }
         await updateStudent(student.id, student);
         setSnackbar({ open: true, message: "Siswa diperbarui", severity: "success" });
       } else {
