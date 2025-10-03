@@ -1,5 +1,6 @@
 // src/services/studentService.js
 import { supabase } from "../supabaseClient";
+import { deleteStudentPhoto, uploadStudentPhoto } from "./storageService";
 
 // helper buat mapping gender
 function normalizeGender(gender) {
