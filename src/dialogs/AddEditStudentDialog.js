@@ -1,21 +1,19 @@
 import React, { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-} from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button, MenuItem } from "@mui/material";
 
 export default function AddEditStudentDialog({ open, onClose, onSave, student }) {
-  const [form, setForm] = useState({ name: "", age: "" });
+  const [form, setForm] = useState({
+    name: "",
+    birthDate: "",
+    address: "",
+    gender: "",
+  });
 
   useEffect(() => {
     if (student) {
-      setForm({ name: student.name || "", age: student.age || "" });
+      setForm(student);
     } else {
-      setForm({ name: "", age: "" });
+      setForm({ name: "", birthDate: "", address: "", gender: "" });
     }
   }, [student]);
 
@@ -24,30 +22,55 @@ export default function AddEditStudentDialog({ open, onClose, onSave, student })
   };
 
   const handleSubmit = () => {
-    if (!form.name.trim()) return;
-    onSave({ ...student, ...form }, !!student);
+    if (!form.name || !form.birthDate || !form.gender) {
+      alert("Harap isi semua data penting");
+      return;
+    }
+    onSave(form, !!student);
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog open={open} onClose={onClose} fullWidth>
       <DialogTitle>{student ? "Edit Siswa" : "Tambah Siswa"}</DialogTitle>
       <DialogContent>
         <TextField
-          label="Nama"
+          margin="dense"
+          label="Nama Lengkap"
           name="name"
+          fullWidth
           value={form.name}
           onChange={handleChange}
-          fullWidth
-          margin="dense"
         />
         <TextField
-          label="Usia"
-          name="age"
-          value={form.age}
-          onChange={handleChange}
-          fullWidth
           margin="dense"
+          type="date"
+          label="Tanggal Lahir"
+          name="birthDate"
+          fullWidth
+          InputLabelProps={{ shrink: true }}
+          value={form.birthDate}
+          onChange={handleChange}
         />
+        <TextField
+          margin="dense"
+          label="Tempat Tinggal"
+          name="address"
+          fullWidth
+          value={form.address}
+          onChange={handleChange}
+        />
+        <TextField
+          select
+          margin="dense"
+          label="Jenis Kelamin"
+          name="gender"
+          fullWidth
+          value={form.gender}
+          onChange={handleChange}
+        >
+          <MenuItem value="Laki-laki">Laki-laki</MenuItem>
+          <MenuItem value="Perempuan">Perempuan</MenuItem>
+        </TextField>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Batal</Button>
