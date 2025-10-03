@@ -16,6 +16,9 @@ import {
   TableSortLabel,
   TablePagination,
   useTheme,
+  useMediaQuery,
+  Collapse,
+  IconButton,
 } from "@mui/material";
 
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
@@ -23,6 +26,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import SearchIcon from "@mui/icons-material/Search";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 
 export default function StudentList({
   students,
@@ -31,12 +36,14 @@ export default function StudentList({
   onInput,
   onView,
 }) {
-  const theme = useTheme(); // akses light/dark mode
+  const theme = useTheme();
+  const isMobile = useMediaQuery("(max-width:768px)");
   const [search, setSearch] = useState("");
   const [orderBy, setOrderBy] = useState("name");
   const [order, setOrder] = useState("asc");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [expandedRow, setExpandedRow] = useState(null);
 
   // Sorting
   const handleSort = (column) => {
@@ -48,10 +55,8 @@ export default function StudentList({
   const sorted = [...students].sort((a, b) => {
     let valA = a[orderBy] || "";
     let valB = b[orderBy] || "";
-
     if (typeof valA === "string") valA = valA.toLowerCase();
     if (typeof valB === "string") valB = valB.toLowerCase();
-
     if (valA < valB) return order === "asc" ? -1 : 1;
     if (valA > valB) return order === "asc" ? 1 : -1;
     return 0;
@@ -82,12 +87,7 @@ export default function StudentList({
           size="small"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          sx={{
-            width: 280,
-            "& .MuiOutlinedInput-root": {
-              borderRadius: 50,
-            },
-          }}
+          sx={{ width: 280 }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -98,7 +98,6 @@ export default function StudentList({
         />
       </Box>
 
-      {/* Table */}
       <TableContainer
         component={Paper}
         sx={{
@@ -113,53 +112,28 @@ export default function StudentList({
         <Table stickyHeader>
           <TableHead>
             <TableRow>
-              {[
-                { key: "name", label: "Nama" },
-                { key: "age", label: "Usia" },
-                { key: "gender", label: "Gender" },
-                { key: "phone", label: "Telepon" },
-                { key: "parent_name", label: "Orang Tua" },
-              ].map((col) => (
-                <TableCell
-                  key={col.key}
-                  sx={{
-                    backgroundColor:
-                      theme.palette.mode === "dark"
-                        ? theme.palette.grey[900]
-                        : theme.palette.grey[100],
-                    fontWeight: "bold",
-                  }}
+              <TableCell>
+                <TableSortLabel
+                  active={orderBy === "name"}
+                  direction={orderBy === "name" ? order : "asc"}
+                  onClick={() => handleSort("name")}
                 >
-                  <TableSortLabel
-                    active={orderBy === col.key}
-                    direction={orderBy === col.key ? order : "asc"}
-                    onClick={() => handleSort(col.key)}
-                  >
-                    <Typography
-                      variant="subtitle2"
-                      fontWeight="bold"
-                      noWrap
-                      sx={{ maxWidth: 140 }}
-                    >
-                      {col.label}
-                    </Typography>
-                  </TableSortLabel>
-                </TableCell>
-              ))}
-              <TableCell
-                align="center"
-                sx={{
-                  backgroundColor:
-                    theme.palette.mode === "dark"
-                      ? theme.palette.grey[900]
-                      : theme.palette.grey[100],
-                  fontWeight: "bold",
-                }}
-              >
-                <Typography variant="subtitle2" fontWeight="bold">
-                  Aksi
-                </Typography>
+                  Nama
+                </TableSortLabel>
               </TableCell>
+              <TableCell>
+                <TableSortLabel
+                  active={orderBy === "age"}
+                  direction={orderBy === "age" ? order : "asc"}
+                  onClick={() => handleSort("age")}
+                >
+                  Usia
+                </TableSortLabel>
+              </TableCell>
+              {!isMobile && <TableCell>Gender</TableCell>}
+              {!isMobile && <TableCell>Telepon</TableCell>}
+              {!isMobile && <TableCell>Orang Tua</TableCell>}
+              <TableCell align="center">Aksi</TableCell>
             </TableRow>
           </TableHead>
 
@@ -171,105 +145,106 @@ export default function StudentList({
                 </TableCell>
               </TableRow>
             ) : (
-              paginated.map((student) => (
-                <TableRow
-                  key={student.id}
-                  hover
-                  sx={{
-                    backgroundColor:
-                      theme.palette.mode === "dark"
-                        ? theme.palette.background.paper
-                        : "inherit",
-                  }}
-                >
-                  <TableCell noWrap title={student.name}>
-                    {student.name}
-                  </TableCell>
-                  <TableCell>{student.age}</TableCell>
-                  <TableCell>{student.gender}</TableCell>
-                  <TableCell noWrap title={student.phone}>
-                    {student.phone}
-                  </TableCell>
-                  <TableCell noWrap title={student.parent_name || student.parentName}>
-                    {student.parent_name || student.parentName}
-                  </TableCell>
-                  <TableCell align="center">
-                    <Stack
-                      direction="row"
-                      spacing={1}
-                      justifyContent="center"
-                      flexWrap="wrap"
-                    >
-                      <Button
-                        variant="contained"
-                        size="small"
-                        color="info"
-                        startIcon={<VisibilityIcon />}
-                        sx={{
-                          borderRadius: 50,
-                          textTransform: "none",
-                          px: 1.5,
-                          fontSize: "0.75rem",
-                        }}
-                        onClick={() => onView(student)}
-                      >
-                        Info
-                      </Button>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        color="primary"
-                        startIcon={<ManageAccountsIcon />}
-                        sx={{
-                          borderRadius: 50,
-                          textTransform: "none",
-                          px: 1.5,
-                          fontSize: "0.75rem",
-                        }}
-                        onClick={() => onEdit(student)}
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        color="secondary"
-                        startIcon={<AssignmentIcon />}
-                        sx={{
-                          borderRadius: 50,
-                          textTransform: "none",
-                          px: 1.5,
-                          fontSize: "0.75rem",
-                        }}
-                        onClick={() => onInput(student)}
-                      >
-                        Input
-                      </Button>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        color="error"
-                        startIcon={<DeleteIcon />}
-                        sx={{
-                          borderRadius: 50,
-                          textTransform: "none",
-                          px: 1.5,
-                          fontSize: "0.75rem",
-                        }}
-                        onClick={() => onDelete(student.id)}
-                      >
-                        Hapus
-                      </Button>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ))
+              paginated.map((student) => {
+                const isExpanded = expandedRow === student.id;
+                return (
+                  <React.Fragment key={student.id}>
+                    <TableRow hover>
+                      <TableCell>
+                        {student.name}
+                        {isMobile && (
+                          <IconButton
+                            size="small"
+                            onClick={() =>
+                              setExpandedRow(isExpanded ? null : student.id)
+                            }
+                          >
+                            {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                          </IconButton>
+                        )}
+                      </TableCell>
+                      <TableCell>{student.age}</TableCell>
+                      {!isMobile && <TableCell>{student.gender}</TableCell>}
+                      {!isMobile && <TableCell>{student.phone}</TableCell>}
+                      {!isMobile && (
+                        <TableCell>{student.parent_name || student.parentName}</TableCell>
+                      )}
+                      <TableCell align="center">
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          justifyContent="center"
+                          flexWrap="wrap"
+                        >
+                          <Button
+                            variant="contained"
+                            size="small"
+                            color="info"
+                            startIcon={<VisibilityIcon />}
+                            onClick={() => onView(student)}
+                          >
+                            Info
+                          </Button>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            color="primary"
+                            startIcon={<ManageAccountsIcon />}
+                            onClick={() => onEdit(student)}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            color="secondary"
+                            startIcon={<AssignmentIcon />}
+                            onClick={() => onInput(student)}
+                          >
+                            Input
+                          </Button>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            color="error"
+                            startIcon={<DeleteIcon />}
+                            onClick={() => onDelete(student.id)}
+                          >
+                            Hapus
+                          </Button>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+
+                    {/* Collapse untuk mobile */}
+                    {isMobile && (
+                      <TableRow>
+                        <TableCell colSpan={4} sx={{ p: 0 }}>
+                          <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                            <Box sx={{ p: 2, bgcolor: "action.hover" }}>
+                              <Typography variant="body2">
+                                <b>Gender:</b> {student.gender}
+                              </Typography>
+                              <Typography variant="body2">
+                                <b>Telepon:</b> {student.phone}
+                              </Typography>
+                              <Typography variant="body2">
+                                <b>Orang Tua:</b>{" "}
+                                {student.parent_name || student.parentName}
+                              </Typography>
+                            </Box>
+                          </Collapse>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </React.Fragment>
+                );
+              })
             )}
           </TableBody>
         </Table>
       </TableContainer>
 
-      {/* Pagination */}
       <TablePagination
         component="div"
         count={filtered.length}
@@ -286,4 +261,4 @@ export default function StudentList({
       />
     </Box>
   );
-}
+                }
