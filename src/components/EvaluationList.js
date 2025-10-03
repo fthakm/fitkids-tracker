@@ -1,38 +1,60 @@
-import React from "react";
-import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
+import { useEffect, useState } from "react";
+import { getEvaluationsByStudent } from "@/services/evaluationService";
+import { Card, CardContent } from "@/components/ui/card";
 
-export default function EvaluationList({ evaluations, onSelect }) {
+export default function EvaluationList({ student, onSelect }) {
+  const [evaluations, setEvaluations] = useState([]);
+
+  useEffect(() => {
+    if (student?.id) {
+      loadData();
+    }
+    async function loadData() {
+      const data = await getEvaluationsByStudent(student.id);
+      setEvaluations(data);
+    }
+  }, [student]);
+
+  if (!student) {
+    return (
+      <Card className="p-4">
+        <CardContent>Pilih siswa untuk melihat evaluasi</CardContent>
+      </Card>
+    );
+  }
+
   return (
-    <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Tanggal</TableCell>
-            <TableCell>Siswa</TableCell>
-            <TableCell>Jumlah Tes</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {evaluations.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={3} align="center">Belum ada evaluasi</TableCell>
-            </TableRow>
-          ) : (
-            evaluations.map((evalItem) => (
-              <TableRow
-                key={evalItem.id}
-                hover
-                sx={{ cursor: "pointer" }}
-                onClick={() => onSelect(evalItem)}
-              >
-                <TableCell>{evalItem.date}</TableCell>
-                <TableCell>{evalItem.studentName}</TableCell>
-                <TableCell>{evalItem.results?.length || 0}</TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <Card className="p-4">
+      <h2 className="text-xl font-bold mb-4">Daftar Evaluasi {student.name}</h2>
+      {evaluations.length === 0 ? (
+        <p className="text-sm text-gray-500">Belum ada evaluasi</p>
+      ) : (
+        <table className="w-full border text-sm">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border p-2">Tanggal</th>
+              <th className="border p-2">Jumlah Tes</th>
+              <th className="border p-2">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {evaluations.map((ev, i) => (
+              <tr key={i}>
+                <td className="border p-2">{ev.date}</td>
+                <td className="border p-2">{ev.results?.length || 0}</td>
+                <td className="border p-2 text-center">
+                  <button
+                    className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    onClick={() => onSelect(ev)}
+                  >
+                    Lihat Detail
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </Card>
   );
 }
