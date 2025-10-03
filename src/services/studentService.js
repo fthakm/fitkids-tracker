@@ -62,10 +62,10 @@ export async function saveStudent(student) {
 }
 
 // ✅ versi fix updateStudent
-export async function updateStudent(student) {
-  const id = student.id ?? student.student_id;
+export async function updateStudent(id, student) {
   if (!id) {
-    throw new Error("updateStudent error: missing id");
+    console.error("updateStudent error: ID tidak ada!");
+    throw new Error("ID siswa tidak valid");
   }
 
   const payload = toDbStudentPayload(student);
