@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { evaluationCriteria } from "../utils/evaluationCriteria";
-import { addEvaluation } from "
-  ../services/evaluationService";
-import { Button } from "@/components/ui/button";
+import { addEvaluation } from "../services/evaluationService";
+// kalau pakai MUI:
+import { Button } from "@mui/material";
+// kalau mau pakai shadcn, pastikan file `src/components/ui/button.js` ada
 
 export default function EvaluationInput({ student, onSuccess }) {
   const [date, setDate] = useState("");
@@ -60,7 +61,9 @@ export default function EvaluationInput({ student, onSuccess }) {
         </div>
       ))}
 
-      <Button onClick={handleSave} className="mt-4">Simpan</Button>
+      <Button onClick={handleSave} variant="contained" className="mt-4">
+        Simpan
+      </Button>
     </div>
   );
 }
@@ -77,14 +80,12 @@ function getAgeGroup(birthdate) {
 function getLabel(criteria, value) {
   const num = parseFloat(value);
   for (const r of criteria.ranges) {
-    // cek sederhana, real logic bisa di-custom sesuai "condition"
     if (r.condition.includes("<") && num < parseFloat(r.condition.replace("<", ""))) {
       return r.label;
     }
     if (r.condition.includes(">") && num > parseFloat(r.condition.replace(">", ""))) {
       return r.label;
     }
-    // range "a - b"
     if (r.condition.includes("-")) {
       const [min, max] = r.condition.split("-").map((s) => parseFloat(s));
       if (num >= min && num <= max) {
@@ -93,4 +94,4 @@ function getLabel(criteria, value) {
     }
   }
   return "Kurang";
-      }
+              }
