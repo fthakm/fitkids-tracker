@@ -1,22 +1,36 @@
 import React from "react";
-import { Box, Typography } from "@mui/material";
+import {
+  Table, TableHead, TableBody, TableRow, TableCell, Paper, TableContainer
+} from "@mui/material";
 
 export default function Leaderboard({ students }) {
-  const leaderboard = [...students].sort(
-    (a, b) =>
-      b.results?.filter(r => r.value >= r.target).length - a.results?.filter(r => r.value >= r.target).length
-  );
+  if (!students || students.length === 0) {
+    return <p>Belum ada data leaderboard</p>;
+  }
+
+  // misalnya sorting by score kalau ada
+  const sorted = [...students].sort((a, b) => (b?.score || 0) - (a?.score || 0));
 
   return (
-    <Box mt={3}>
-      <Typography variant="h5" gutterBottom>Leaderboard</Typography>
-      <ol>
-        {leaderboard.map((s) => (
-          <li key={s.id || s.name}>
-            <strong>{s.name}</strong> ({s.age}) - ✔ {s.results?.filter(r => r.value >= r.target).length} latihan memenuhi target
-          </li>
-        ))}
-      </ol>
-    </Box>
+    <TableContainer component={Paper}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Nama</TableCell>
+            <TableCell>Usia</TableCell>
+            <TableCell>Skor</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {sorted.map((s, i) => (
+            <TableRow key={i}>
+              <TableCell>{s?.name || "-"}</TableCell>
+              <TableCell>{s?.age || "-"}</TableCell>
+              <TableCell>{s?.score || "-"}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 }
