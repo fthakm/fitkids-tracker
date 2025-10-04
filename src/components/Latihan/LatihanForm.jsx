@@ -1,80 +1,68 @@
-import React, { useState, useEffect } from "react";
-import { TextField, Button, MenuItem, Checkbox, FormControlLabel, Typography } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import { Button, Typography, TextField, Checkbox, FormControlLabel } from "@mui/material";
 import { getStudents } from "../../services/studentService";
-import { addLatihan } from "../../services/latihanService";
+import { saveLatihanSession } from "../../services/latihanService";
 
-export default function LatihanForm({ onClose, onSuccess }) {
+export default function LatihanForm({ onClose, onSaved }) {
   const [students, setStudents] = useState([]);
-  const [form, setForm] = useState({
-    date: new Date().toISOString().split("T")[0],
-    type: "",
-    target: "",
-    participants: [],
-  });
+  const [selected, setSelected] = useState([]);
+  const [exerciseType, setExerciseType] = useState("");
+  const [date, setDate] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    getStudents().then(setStudents).catch(console.error);
+    getStudents().then(setStudents);
   }, []);
+
+  const toggleStudent = (id) => {
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await addLatihan(form);
-    onSuccess();
-  };
-
-  const toggleStudent = (id) => {
-    setForm((prev) => {
-      const isSelected = prev.participants.includes(id);
-      return {
-        ...prev,
-        participants: isSelected
-          ? prev.participants.filter((sid) => sid !== id)
-          : [...prev.participants, id],
-      };
-    });
+    setLoading(true);
+    await saveLatihanSession({ exerciseType, date, students: selected });
+    setLoading(false);
+    onSaved();
+    onClose();
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <Typography variant="h6" className="text-blue-600 font-semibold">
-        Tambah Data Latihan
+      <Typography variant="h6" className="font-bold text-blue-600">
+        Tambah Sesi Latihan
       </Typography>
 
       <TextField
-        label="Tanggal Latihan"
-        type="date"
-        name="date"
-        value={form.date}
-        onChange={(e) => setForm({ ...form, date: e.target.value })}
-        fullWidth
-        required
-      />
-      <TextField
         label="Jenis Latihan"
-        name="type"
-        value={form.type}
-        onChange={(e) => setForm({ ...form, type: e.target.value })}
+        value={exerciseType}
+        onChange={(e) => setExerciseType(e.target.value)}
         fullWidth
         required
-      />
-      <TextField
-        label="Target Nilai"
-        name="target"
-        value={form.target}
-        onChange={(e) => setForm({ ...form, target: e.target.value })}
-        fullWidth
       />
 
-      <div className="max-h-48 overflow-auto border rounded-md p-2">
-        <Typography variant="subtitle1" className="text-gray-700 font-medium mb-2">
-          Pilih Siswa yang Hadir:
+      <TextField
+        type="date"
+        label="Tanggal"
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
+        fullWidth
+        InputLabelProps={{ shrink: true }}
+        required
+      />
+
+      <div className="border p-3 rounded-lg h-48 overflow-y-auto">
+        <Typography variant="subtitle1" className="font-semibold mb-2">
+          Pilih Siswa yang Hadir
         </Typography>
         {students.map((s) => (
           <FormControlLabel
             key={s.id}
             control={
               <Checkbox
-                checked={form.participants.includes(s.id)}
+                checked={selected.includes(s.id)}
                 onChange={() => toggleStudent(s.id)}
               />
             }
@@ -83,14 +71,14 @@ export default function LatihanForm({ onClose, onSuccess }) {
         ))}
       </div>
 
-      <div className="flex justify-end gap-3">
-        <Button variant="outlined" onClick={onClose}>
+      <div className="flex justify-end gap-2 pt-2">
+        <Button onClick={onClose} color="inherit">
           Batal
         </Button>
-        <Button type="submit" variant="contained" color="primary">
-          Simpan
+        <Button type="submit" variant="contained" color="primary" disabled={loading}>
+          {loading ? "Menyimpan..." : "Simpan"}
         </Button>
       </div>
     </form>
   );
-                                  }
+}
