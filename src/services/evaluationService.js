@@ -1,23 +1,36 @@
-import { supabase } from "../supabaseClient";
+import supabase from "../supabaseClient";
 
-export async function getAllEvaluasi() {
-  const { data, error } = await supabase
-    .from("evaluasi")
-    .select("*")
-    .order("date", { ascending: false });
-  if (error) throw error;
-  return data;
-}
+// Ambil rekap nilai rata-rata siswa per bulan
+export async function getEvaluasiSummary(month = "all") {
+  let query = supabase.from("student_results").select(`
+    id,
+    student_id,
+    score,
+    month,
+    students ( name )
+  `);
 
-export async function filterEvaluasi(studentId, month) {
-  let query = supabase
-    .from("evaluasi")
-    .select("*")
-    .gte("month", month)
-    .lte("month", month);
+  if (month !== "all") query = query.eq("month", month);
 
-  if (studentId !== "all") query = query.eq("student_id", studentId);
   const { data, error } = await query;
   if (error) throw error;
-  return data;
+
+  // Kelompokkan & hitung rata-rata
+  const grouped = {};
+  data.forEach((r) => {
+    const name = r.students?.name || "Tanpa Nama";
+    if (!grouped[name]) grouped[name] = [];
+    grouped[name].push(r.score);
+  });
+
+  return Object.keys(grouped).map((name, index) => {
+    const scores = grouped[name];
+    const avg =
+      scores.reduce((acc, s) => acc + s, 0) / (scores.length || 1);
+    return {
+      id: index,
+      name,
+      averageScore: Math.round(avg),
+    };
+  });
 }
