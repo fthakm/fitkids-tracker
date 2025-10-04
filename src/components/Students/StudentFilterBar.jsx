@@ -1,5 +1,6 @@
 import React from "react";
-import { TextField, MenuItem, Button } from "@mui/material";
+import { TextField, InputAdornment, FormControl, InputLabel, Select, MenuItem, Button, Stack } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 
 export default function StudentFilterBar({
@@ -10,36 +11,44 @@ export default function StudentFilterBar({
   onAddStudent,
 }) {
   return (
-    <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-      <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+    <div className="flex flex-wrap gap-3 justify-between items-center">
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
         <TextField
-          label="Cari Siswa..."
+          placeholder="Cari siswa..."
+          size="small"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          size="small"
-          className="w-full md:w-64 bg-white rounded-md"
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon color="action" />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ width: { xs: "100%", sm: 240 } }}
         />
-        <TextField
-          select
-          label="Filter Usia"
-          value={ageFilter}
-          onChange={(e) => onAgeChange(e.target.value)}
-          size="small"
-          className="w-full md:w-48 bg-white rounded-md"
-        >
-          <MenuItem value="all">Semua Usia</MenuItem>
-          <MenuItem value="7-9">7 - 9 Tahun</MenuItem>
-          <MenuItem value="10-12">10 - 12 Tahun</MenuItem>
-          <MenuItem value="13-15">13 - 15 Tahun</MenuItem>
-        </TextField>
-      </div>
+
+        <FormControl size="small" sx={{ minWidth: 140 }}>
+          <InputLabel>Filter Usia</InputLabel>
+          <Select
+            value={ageFilter}
+            label="Filter Usia"
+            onChange={(e) => onAgeChange(e.target.value)}
+          >
+            <MenuItem value="all">Semua</MenuItem>
+            <MenuItem value="7-9">7-9 tahun</MenuItem>
+            <MenuItem value="10-12">10-12 tahun</MenuItem>
+            <MenuItem value="13-15">13-15 tahun</MenuItem>
+          </Select>
+        </FormControl>
+      </Stack>
 
       <Button
         variant="contained"
-        color="primary"
+        color="success"
         startIcon={<AddIcon />}
         onClick={onAddStudent}
-        className="whitespace-nowrap"
+        sx={{ borderRadius: 1 }}
       >
         Tambah Siswa
       </Button>
