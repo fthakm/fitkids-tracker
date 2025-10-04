@@ -1,86 +1,85 @@
-import React, { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-  MenuItem,
-  Stack,
-} from "@mui/material";
+import React, { useState } from "react";
+import { TextField, Button, MenuItem, Typography } from "@mui/material";
 
-export default function StudentForm({ open, onClose, onSave, initialData }) {
-  const [student, setStudent] = useState({
-    name: "",
-    age: "",
-    gender: "",
-    phone: "",
-    parent_name: "",
+export default function StudentForm({ onSubmit, onCancel, initialData = {} }) {
+  const [formData, setFormData] = useState({
+    name: initialData.name || "",
+    age: initialData.age || "",
+    gender: initialData.gender || "",
+    phone: initialData.phone || "",
+    parent_name: initialData.parent_name || "",
   });
 
-  useEffect(() => {
-    if (initialData) setStudent(initialData);
-  }, [initialData]);
-
-  const handleChange = (field, value) => {
-    setStudent((prev) => ({ ...prev, [field]: value }));
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = () => {
-    onSave(student);
-    onClose();
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(formData);
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>{initialData ? "Edit Data Siswa" : "Tambah Siswa"}</DialogTitle>
-      <DialogContent>
-        <Stack spacing={2} mt={1}>
-          <TextField
-            label="Nama"
-            value={student.name}
-            onChange={(e) => handleChange("name", e.target.value)}
-            fullWidth
-          />
-          <TextField
-            label="Usia"
-            type="number"
-            value={student.age}
-            onChange={(e) => handleChange("age", e.target.value)}
-            fullWidth
-          />
-          <TextField
-            label="Gender"
-            select
-            value={student.gender}
-            onChange={(e) => handleChange("gender", e.target.value)}
-            fullWidth
-          >
-            <MenuItem value="Laki-laki">Laki-laki</MenuItem>
-            <MenuItem value="Perempuan">Perempuan</MenuItem>
-          </TextField>
-          <TextField
-            label="Nomor Telepon"
-            value={student.phone}
-            onChange={(e) => handleChange("phone", e.target.value)}
-            fullWidth
-          />
-          <TextField
-            label="Nama Orang Tua"
-            value={student.parent_name}
-            onChange={(e) => handleChange("parent_name", e.target.value)}
-            fullWidth
-          />
-        </Stack>
-      </DialogContent>
+    <form
+      onSubmit={handleSubmit}
+      className="flex flex-col gap-4"
+    >
+      <Typography variant="h6" className="text-blue-600 font-semibold">
+        {initialData.id ? "Edit Data Siswa" : "Tambah Siswa"}
+      </Typography>
 
-      <DialogActions>
-        <Button onClick={onClose}>Batal</Button>
-        <Button variant="contained" color="primary" onClick={handleSubmit}>
+      <TextField
+        label="Nama Lengkap"
+        name="name"
+        value={formData.name}
+        onChange={handleChange}
+        required
+        fullWidth
+      />
+      <TextField
+        label="Usia"
+        name="age"
+        type="number"
+        value={formData.age}
+        onChange={handleChange}
+        required
+        fullWidth
+      />
+      <TextField
+        label="Jenis Kelamin"
+        name="gender"
+        value={formData.gender}
+        onChange={handleChange}
+        required
+        select
+        fullWidth
+      >
+        <MenuItem value="Laki-laki">Laki-laki</MenuItem>
+        <MenuItem value="Perempuan">Perempuan</MenuItem>
+      </TextField>
+      <TextField
+        label="Nama Orang Tua"
+        name="parent_name"
+        value={formData.parent_name}
+        onChange={handleChange}
+        fullWidth
+      />
+      <TextField
+        label="Nomor Telepon"
+        name="phone"
+        value={formData.phone}
+        onChange={handleChange}
+        fullWidth
+      />
+
+      <div className="flex justify-end gap-3 mt-4">
+        <Button onClick={onCancel} variant="outlined" color="inherit">
+          Batal
+        </Button>
+        <Button type="submit" variant="contained" color="primary">
           Simpan
         </Button>
-      </DialogActions>
-    </Dialog>
+      </div>
+    </form>
   );
 }
