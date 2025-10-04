@@ -1,162 +1,265 @@
-import React, { useState } from 'react';
+Aditya, [10/4/2025 3:43 PM]
+import React, { useState } from "react";
 import {
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Paper, Button, TextField, Box, Stack, Typography, InputAdornment,
-  TableSortLabel, TablePagination, useTheme, useMediaQuery, Collapse,
-  IconButton, Menu, MenuItem, Select, FormControl, InputLabel,
-} from '@mui/material';
-import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AssignmentIcon from '@mui/icons-material/Assignment';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import SearchIcon from '@mui/icons-material/Search';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import AddIcon from '@mui/icons-material/Add';
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+  Tooltip,
+  TextField,
+  InputAdornment,
+  Collapse,
+  TablePagination,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Typography,
+  Button,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import EditIcon from "@mui/icons-material/Edit";
+import AssignmentIcon from "@mui/icons-material/Assignment";
+import DeleteIcon from "@mui/icons-material/Delete";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 
-export default function StudentList({ students, onEdit, onDelete, onInput, onView, onAdd }) {
-  const theme = useTheme();
-  const isMobile = useMediaQuery('(max-width:600px)');
-  const [search, setSearch] = useState('');
-  const [orderBy, setOrderBy] = useState('name');
-  const [order, setOrder] = useState('asc');
+export default function StudentList({
+  students,
+  onEdit,
+  onDelete,
+  onInput,
+  onView,
+}) {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [ageFilter, setAgeFilter] = useState("all");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [expandedRow, setExpandedRow] = useState(null);
-  const [ageFilter, setAgeFilter] = useState('');
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [selectedStudent, setSelectedStudent] = useState(null);
 
-  const handleMenuOpen = (event, student) => {
-    setAnchorEl(event.currentTarget);
-    setSelectedStudent(student);
-  };
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setSelectedStudent(null);
+  const handleChangePage = (event, newPage) => setPage(newPage);
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
   };
 
-  const handleSort = (column) => {
-    const isAsc = orderBy === column && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(column);
+  const handleToggleExpand = (id) => {
+    setExpandedRow(expandedRow === id ? null : id);
   };
 
-  const sorted = [...students].sort((a, b) => {
-    let valA = a[orderBy] || '';
-    let valB = b[orderBy] || '';
-    if (typeof valA === 'string') valA = valA.toLowerCase();
-    if (typeof valB === 'string') valB = valB.toLowerCase();
-    if (valA < valB) return order === 'asc' ? -1 : 1;
-    if (valA > valB) return order === 'asc' ? 1 : -1;
-    return 0;
-  });
+  const filteredStudents = students
+    .filter((s) =>
+      s.name.toLowerCase().includes(searchTerm.toLowerCase().trim())
+    )
+    .filter((s) => {
+      if (ageFilter === "all") return true;
+      if (ageFilter === "7-9") return s.age >= 7 && s.age <= 9;
+      if (ageFilter === "10-12") return s.age >= 10 && s.age <= 12;
+      if (ageFilter === "13-15") return s.age >= 13 && s.age <= 15;
+      return true;
+    });
 
-  const filtered = sorted.filter((s) => {
-    const matchSearch =
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
-      (s.parent_name || s.parentName || '').toLowerCase().includes(search.toLowerCase());
-    const matchAge = ageFilter ? String(s.age) === String(ageFilter) : true;
-    return matchSearch && matchAge;
-  });
-
-  const paginated = filtered.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  const paginatedStudents = filteredStudents.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   return (
-    <Box>
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent='space-between' alignItems={{ xs: 'stretch', sm: 'center' }} sx={{ mb: 2 }}>
-        <Stack direction='row' spacing={1} alignItems='center'>
-          <Button variant='contained' color='success' startIcon={<AddIcon />} onClick={onAdd} sx={{ borderRadius: 0 }}>Tambah Siswa</Button>
-          <FormControl size='small' sx={{ minWidth: 140 }}>
-            <InputLabel>Filter Usia</InputLabel>
-            <Select value={ageFilter} label='Filter Usia' onChange={(e) => setAgeFilter(e.target.value)}>
-              <MenuItem value=''>Semua</MenuItem>
-              <MenuItem value='6'>6</MenuItem>
-              <MenuItem value='7'>7</MenuItem>
-              <MenuItem value='8'>8</MenuItem>
-              <MenuItem value='9'>9</MenuItem>
-              <MenuItem value='10'>10</MenuItem>
-            </Select>
-          </FormControl>
-        </Stack>
+    <div className="p-6 space-y-4">
+      {/* Header */}
+      <Typography variant="h5" className="font-bold text-blue-700">
+        Daftar Siswa
+      </Typography>
 
-        <TextField placeholder='Cari siswa atau orang tua...' variant='outlined' size='small' value={search} onChange={(e) => setSearch(e.target.value)} sx={{ width: { xs: '100%', sm: 320 } }} InputProps={{ startAdornment: (<InputAdornment position='start'><SearchIcon color='action' /></InputAdornment>) }} />
-      </Stack>
+      {/* Search & Filter Bar */}
+      <div className="flex flex-wrap gap-3 bg-white p-4 rounded-xl shadow-sm items-center">
+        <TextField
+          size="small"
+          placeholder="Cari nama siswa..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon color="primary" />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ flex: 1, minWidth: 220 }}
+        />
 
-      <TableContainer component={Paper} sx={{ borderRadius: 2, maxHeight: 520, backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.default : 'white' }}>
-        <Table stickyHeader>
-          <TableHead>
+        <FormControl size="small" sx={{ minWidth: 160 }}>
+          <InputLabel>Filter Usia</InputLabel>
+          <Select
+            value={ageFilter}
+            onChange={(e) => setAgeFilter(e.target.value)}
+            label="Filter Usia"
+          >
+            <MenuItem value="all">Semua</MenuItem>
+            <MenuItem value="7-9">7–9 Tahun</MenuItem>
+            <MenuItem value="10-12">10–12 Tahun</MenuItem>
+            <MenuItem value="13-15">13–15 Tahun</MenuItem>
+          </Select>
+        </FormControl>
+      </div>
+
+      {/* Tabel */}
+      <TableContainer
+        component={Paper}
+        className="shadow-md rounded-xl overflow-hidden"
+      >
+        <Table>
+          <TableHead className="bg-blue-600">
             <TableRow>
-              <TableCell><TableSortLabel active={orderBy==='name'} direction={orderBy==='name'?order:'asc'} onClick={()=>handleSort('name')}>Nama</TableSortLabel></TableCell>
-              <TableCell><TableSortLabel active={orderBy==='age'} direction={orderBy==='age'?order:'asc'} onClick={()=>handleSort('age')}>Usia</TableSortLabel></TableCell>
-              {!isMobile && <TableCell>Gender</TableCell>}
-              {!isMobile && <TableCell>Telepon</TableCell>}
-              {!isMobile && <TableCell>Orang Tua</TableCell>}
-              <TableCell align='center'>Aksi</TableCell>
+              <TableCell className="text-white font-semibold">Nama</TableCell>
+              <TableCell className="text-white font-semibold">Usia</TableCell>
+              <TableCell className="text-white font-semibold hidden md:table-cell">
+                Gender
+              </TableCell>
+              <TableCell className="text-white font-semibold hidden md:table-cell">
+                Telepon
+              </TableCell>
+
+Aditya, [10/4/2025 3:43 PM]
+<TableCell className="text-white font-semibold hidden md:table-cell">
+                Orang Tua
+              </TableCell>
+              <TableCell align="center" className="text-white font-semibold">
+                Aksi
+              </TableCell>
             </TableRow>
           </TableHead>
+
           <TableBody>
-            {paginated.length===0 ? (
-              <TableRow><TableCell colSpan={6} align='center'>Belum ada data siswa</TableCell></TableRow>
-            ) : paginated.map((student)=>{
-              const isExpanded = expandedRow===student.id;
-              return (
+            {paginatedStudents.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} align="center" className="p-6">
+                  Belum ada data siswa
+                </TableCell>
+              </TableRow>
+            ) : (
+              paginatedStudents.map((student) => (
                 <React.Fragment key={student.id}>
                   <TableRow hover>
                     <TableCell>
-                      <Stack direction='row' alignItems='center' spacing={1}>
-                        <IconButton size='small' onClick={() => setExpandedRow(isExpanded?null:student.id)} sx={{ visibility: isMobile ? 'visible' : 'hidden' }}>
-                          {isExpanded ? <ExpandLessIcon/> : <ExpandMoreIcon/>}
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold">{student.name}</span>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleToggleExpand(student.id)}
+                        >
+                          {expandedRow === student.id ? (
+                            <ExpandLessIcon />
+                          ) : (
+                            <ExpandMoreIcon />
+                          )}
                         </IconButton>
-                        <Typography noWrap sx={{ maxWidth: 220 }}>{student.name}</Typography>
-                      </Stack>
+                      </div>
                     </TableCell>
                     <TableCell>{student.age}</TableCell>
-                    {!isMobile && <TableCell>{student.gender}</TableCell>}
-                    {!isMobile && <TableCell>{student.phone}</TableCell>}
-                    {!isMobile && <TableCell>{student.parent_name || student.parentName}</TableCell>}
-                    <TableCell align='center'>
-                      {isMobile ? (
-                        <IconButton onClick={(e)=>handleMenuOpen(e,student)}><MoreVertIcon/></IconButton>
-                      ) : (
-                        <Stack direction='row' spacing={1} justifyContent='center' flexWrap='wrap'>
-                          <Button variant='contained' size='small' color='info' startIcon={<VisibilityIcon/>} onClick={()=>onView(student)} sx={{ borderRadius:0, minWidth:110 }}>Info</Button>
-                          <Button variant='contained' size='small' color='primary' startIcon={<ManageAccountsIcon/>} onClick={()=>onEdit(student)} sx={{ borderRadius:0, minWidth:110 }}>Edit</Button>
-                          <Button variant='contained' size='small' color='secondary' startIcon={<AssignmentIcon/>} onClick={()=>onInput(student)} sx={{ borderRadius:0, minWidth:110 }}>Input</Button>
-                          <Button variant='contained' size='small' color='error' startIcon={<DeleteIcon/>} onClick={()=>onDelete(student.id)} sx={{ borderRadius:0, minWidth:110 }}>Hapus</Button>
-                        </Stack>
-                      )}
+                    <TableCell className="hidden md:table-cell">
+                      {student.gender}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {student.phone}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {student.parent_name || student.parentName}
+                    </TableCell>
+
+                    {/* Tombol Aksi */}
+                    <TableCell align="center">
+                      <div className="flex justify-center gap-2 flex-wrap">
+                        <Button
+                          onClick={() => onView(student)}
+                          variant="outlined"
+                          color="info"
+                          size="small"
+                          sx={{ textTransform: "none", minWidth: "95px" }}
+                          startIcon={<VisibilityIcon />}
+                        >
+                          Info
+                        </Button>
+                        <Button
+                          onClick={() => onEdit(student)}
+                          variant="outlined"
+                          color="primary"
+                          size="small"
+                          sx={{ textTransform: "none", minWidth: "95px" }}
+                          startIcon={<EditIcon />}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          onClick={() => onInput(student)}
+                          variant="outlined"
+                          color="secondary"
+                          size="small"
+                          sx={{ textTransform: "none", minWidth: "95px" }}
+                          startIcon={<AssignmentIcon />}
+                        >
+                          Nilai
+                        </Button>
+                        <Button
+                          onClick={() => onDelete(student.id)}
+                          variant="outlined"
+                          color="error"
+                          size="small"
+                          sx={{ textTransform: "none", minWidth: "95px" }}
+                          startIcon={<DeleteIcon />}
+                        >
+                          Hapus
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
-                  {isMobile && (
-                    <TableRow>
-                      <TableCell colSpan={6} sx={{ p:0 }}>
-                        <Collapse in={isExpanded} timeout='auto' unmountOnExit>
-                          <Box sx={{ p:2, bgcolor:'action.hover' }}>
-                            <Typography variant='body2'><b>Gender:</b> {student.gender}</Typography>
-                            <Typography variant='body2'><b>Telepon:</b> {student.phone}</Typography>
-                            <Typography variant='body2'><b>Orang Tua:</b> {student.parent_name || student.parentName}</Typography>
-                          </Box>
-                        </Collapse>
-                      </TableCell>
-                    </TableRow>
-                  )}
+
+Aditya, [10/4/2025 3:43 PM]
+{/* Collapse detail for mobile */}
+                  <TableRow className="md:hidden bg-gray-50">
+                    <TableCell colSpan={6} sx={{ p: 0 }}>
+                      <Collapse
+                        in={expandedRow === student.id}
+                        timeout="auto"
+                        unmountOnExit
+                      >
+                        <div className="p-4 space-y-1 text-sm">
+                          <p>
+                            <strong>Gender:</strong> {student.gender}
+                          </p>
+                          <p>
+                            <strong>Telepon:</strong> {student.phone}
+                          </p>
+                          <p>
+                            <strong>Orang Tua:</strong>{" "}
+                            {student.parent_name || student.parentName}
+                          </p>
+                        </div>
+                      </Collapse>
+                    </TableCell>
+                  </TableRow>
                 </React.Fragment>
-              )
-            })}
+              ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>
 
-      <TablePagination component='div' count={filtered.length} page={page} onPageChange={(e,newPage)=>setPage(newPage)} rowsPerPage={rowsPerPage} onRowsPerPageChange={(e)=>{setRowsPerPage(parseInt(e.target.value,10)); setPage(0);}} rowsPerPageOptions={[5,10,25,50]} labelRowsPerPage='Tampilkan' sx={{ mt:1 }} />
-
-      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
-        <MenuItem onClick={()=>{ onView(selectedStudent); handleMenuClose(); }}><VisibilityIcon fontSize='small' sx={{ mr:1 }}/> Info</MenuItem>
-        <MenuItem onClick={()=>{ onEdit(selectedStudent); handleMenuClose(); }}><ManageAccountsIcon fontSize='small' sx={{ mr:1 }}/> Edit</MenuItem>
-        <MenuItem onClick={()=>{ onInput(selectedStudent); handleMenuClose(); }}><AssignmentIcon fontSize='small' sx={{ mr:1 }}/> Input</MenuItem>
-        <MenuItem onClick={()=>{ onDelete(selectedStudent?.id); handleMenuClose(); }}><DeleteIcon fontSize='small' sx={{ mr:1 }}/> Hapus</MenuItem>
-      </Menu>
-    </Box>
+      {/* Pagination */}
+      <TablePagination
+        component="div"
+        count={filteredStudents.length}
+        page={page}
+        onPageChange={handleChangePage}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+        labelRowsPerPage="Baris per halaman"
+      />
+    </div>
   );
 }
