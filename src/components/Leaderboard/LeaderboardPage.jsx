@@ -1,110 +1,84 @@
 import React, { useEffect, useState } from "react";
-import {
-  Paper,
-  Typography,
-  CircularProgress,
-  Avatar,
-  IconButton,
-} from "@mui/material";
-import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
-import RefreshIcon from "@mui/icons-material/Refresh";
+import { Paper, Typography, Tabs, Tab, CircularProgress } from "@mui/material";
 import { getLeaderboard } from "../../services/leaderboardService";
 
 export default function LeaderboardPage() {
-  const [leaders, setLeaders] = useState([]);
+  const [tab, setTab] = useState(0);
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const loadLeaderboard = async () => {
-    try {
-      setLoading(true);
-      const data = await getLeaderboard();
-      setLeaders(data);
-    } catch (err) {
-      console.error("Gagal ambil leaderboard:", err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const tabs = ["Paling Rajin", "Performa Terbaik", "Kurang Aktif"];
 
   useEffect(() => {
-    loadLeaderboard();
-  }, []);
-
-  const getRankColor = (rank) => {
-    switch (rank) {
-      case 1:
-        return "bg-yellow-400 text-yellow-900";
-      case 2:
-        return "bg-gray-300 text-gray-800";
-      case 3:
-        return "bg-amber-600 text-white";
-      default:
-        return "bg-blue-50 text-blue-800";
-    }
-  };
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const leaderboardData = await getLeaderboard(tab);
+        setData(leaderboardData);
+      } catch (err) {
+        console.error("Gagal ambil leaderboard:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, [tab]);
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <Typography variant="h5" className="font-bold text-blue-600 flex items-center gap-2">
-          <EmojiEventsIcon color="primary" />
-          Leaderboard Siswa
-        </Typography>
-        <IconButton color="primary" onClick={loadLeaderboard}>
-          <RefreshIcon />
-        </IconButton>
-      </div>
+      <Typography variant="h5" className="font-bold text-blue-600">
+        Leaderboard Siswa
+      </Typography>
+
+      <Tabs
+        value={tab}
+        onChange={(e, val) => setTab(val)}
+        textColor="primary"
+        indicatorColor="primary"
+        centered
+      >
+        {tabs.map((label, index) => (
+          <Tab key={index} label={label} />
+        ))}
+      </Tabs>
 
       {loading ? (
         <div className="flex justify-center py-8">
           <CircularProgress />
         </div>
-      ) : leaders.length === 0 ? (
-        <Typography align="center" color="textSecondary">
-          Belum ada data leaderboard.
-        </Typography>
       ) : (
-        <Paper className="overflow-x-auto rounded-xl shadow-md">
-          <table className="min-w-full border-collapse">
-            <thead className="bg-blue-600 text-white">
-              <tr>
-                <th className="p-3 text-left">Peringkat</th>
-                <th className="p-3 text-left">Nama Siswa</th>
-                <th className="p-3 text-left">Total Nilai</th>
-                <th className="p-3 text-left">Rata-rata</th>
-              </tr>
-            </thead>
-            <tbody>
-              {leaders.map((l, i) => (
-                <tr
-                  key={l.id}
-                  className={`border-b hover:bg-blue-50 transition ${i < 3 ? "font-semibold" : ""}`}
-                >
-                  <td className="p-3">
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-bold ${getRankColor(
-                        i + 1
-                      )}`}
-                    >
-                      #{i + 1}
-                    </span>
-                  </td>
-                  <td className="p-3 flex items-center gap-3">
-                    <Avatar
-                      alt={l.name}
-                      src={l.avatar_url || ""}
-                      className="border border-blue-400"
-                    />
-                    <span>{l.name}</span>
-                  </td>
-                  <td className="p-3 text-blue-700 font-bold">{l.total_score}</td>
-                  <td className="p-3">{l.avg_score.toFixed(2)}</td>
+        <Paper className="p-4 rounded-xl shadow-md">
+          {data.length === 0 ? (
+            <Typography align="center" color="textSecondary">
+              Tidak ada data leaderboard.
+            </Typography>
+          ) : (
+            <table className="min-w-full border-collapse">
+              <thead className="bg-blue-600 text-white">
+                <tr>
+                  <th className="p-3 text-left">Peringkat</th>
+                  <th className="p-3 text-left">Nama</th>
+                  <th className="p-3 text-left">Nilai</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {data.map((s, i) => (
+                  <tr
+                    key={s.id}
+                    className={`hover:bg-blue-50 border-b ${
+                      i < 3 ? "bg-blue-100" : ""
+                    }`}
+                  >
+                    <td className="p-3 font-semibold text-blue-700">{i + 1}</td>
+                    <td className="p-3">{s.name}</td>
+                    <td className="p-3 font-medium">{s.score}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </Paper>
       )}
     </div>
   );
-                  }
+}
