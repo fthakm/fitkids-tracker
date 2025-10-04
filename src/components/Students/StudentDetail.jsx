@@ -1,49 +1,32 @@
 import React from "react";
-import { Paper, Typography, Divider, Box, Button } from "@mui/material";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Typography,
+  Stack,
+} from "@mui/material";
 
-export default function StudentDetail({ student, onClose }) {
+export default function StudentDetail({ open, onClose, student }) {
   if (!student) return null;
 
   return (
-    <Paper className="p-6 md:p-8 rounded-xl shadow-md bg-white">
-      <Typography variant="h6" className="font-semibold text-blue-600 mb-2">
-        Detail Siswa
-      </Typography>
-      <Divider className="mb-4" />
-
-      <Box className="flex flex-col md:flex-row items-start gap-6">
-        {student.photo && (
-          <img
-            src={student.photo}
-            alt={student.name}
-            className="w-32 h-32 object-cover rounded-lg border"
-          />
-        )}
-
-        <div className="space-y-2">
-          <Typography variant="body1">
-            <b>Nama:</b> {student.name}
-          </Typography>
-          <Typography variant="body1">
-            <b>Usia:</b> {student.age} tahun
-          </Typography>
-          <Typography variant="body1">
-            <b>Gender:</b> {student.gender}
-          </Typography>
-          <Typography variant="body1">
-            <b>Telepon:</b> {student.phone || "-"}
-          </Typography>
-          <Typography variant="body1">
-            <b>Orang Tua:</b> {student.parentName || "-"}
-          </Typography>
-        </div>
-      </Box>
-
-      <div className="flex justify-end mt-6">
-        <Button onClick={onClose} variant="outlined" color="primary">
-          Tutup
-        </Button>
-      </div>
-    </Paper>
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle>Detail Siswa</DialogTitle>
+      <DialogContent>
+        <Stack spacing={1} mt={1}>
+          <Typography><b>Nama:</b> {student.name}</Typography>
+          <Typography><b>Usia:</b> {student.age}</Typography>
+          <Typography><b>Gender:</b> {student.gender}</Typography>
+          <Typography><b>Telepon:</b> {student.phone}</Typography>
+          <Typography><b>Orang Tua:</b> {student.parent_name}</Typography>
+        </Stack>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Tutup</Button>
+      </DialogActions>
+    </Dialog>
   );
 }
