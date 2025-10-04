@@ -1,265 +1,179 @@
-Aditya, [10/4/2025 3:43 PM]
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Paper,
-  IconButton,
-  Tooltip,
-  TextField,
-  InputAdornment,
-  Collapse,
-  TablePagination,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Typography,
   Button,
+  IconButton,
+  CircularProgress,
+  Divider,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import EditIcon from "@mui/icons-material/Edit";
-import AssignmentIcon from "@mui/icons-material/Assignment";
+import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import InfoIcon from "@mui/icons-material/Info";
+import StudentForm from "./StudentForm";
+import StudentDetail from "./StudentDetail";
+import StudentFilterBar from "./StudentFilterBar";
+import {
+  getStudents,
+  addStudent,
+  updateStudent,
+  deleteStudent,
+} from "../../services/studentService";
 
-export default function StudentList({
-  students,
-  onEdit,
-  onDelete,
-  onInput,
-  onView,
-}) {
-  const [searchTerm, setSearchTerm] = useState("");
+export default function StudentList() {
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState(null);
+  const [editing, setEditing] = useState(null);
+  const [adding, setAdding] = useState(false);
+  const [search, setSearch] = useState("");
   const [ageFilter, setAgeFilter] = useState("all");
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [expandedRow, setExpandedRow] = useState(null);
 
-  const handleChangePage = (event, newPage) => setPage(newPage);
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+  const loadStudents = async () => {
+    try {
+      setLoading(true);
+      const data = await getStudents();
+      setStudents(data);
+    } catch (err) {
+      console.error("Gagal ambil data siswa:", err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleToggleExpand = (id) => {
-    setExpandedRow(expandedRow === id ? null : id);
+  useEffect(() => {
+    loadStudents();
+  }, []);
+
+  const handleAdd = async (formData) => {
+    await addStudent(formData);
+    setAdding(false);
+    await loadStudents();
   };
 
-  const filteredStudents = students
-    .filter((s) =>
-      s.name.toLowerCase().includes(searchTerm.toLowerCase().trim())
-    )
-    .filter((s) => {
-      if (ageFilter === "all") return true;
-      if (ageFilter === "7-9") return s.age >= 7 && s.age <= 9;
-      if (ageFilter === "10-12") return s.age >= 10 && s.age <= 12;
-      if (ageFilter === "13-15") return s.age >= 13 && s.age <= 15;
-      return true;
-    });
+  const handleUpdate = async (formData) => {
+    await updateStudent(editing.id, formData);
+    setEditing(null);
+    await loadStudents();
+  };
 
-  const paginatedStudents = filteredStudents.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
+  const handleDelete = async (id) => {
+    if (!window.confirm("Yakin ingin hapus siswa ini?")) return;
+    await deleteStudent(id);
+    await loadStudents();
+  };
+
+  const filtered = students.filter((s) => {
+    const matchSearch = s.name.toLowerCase().includes(search.toLowerCase());
+    const matchAge =
+      ageFilter === "all" ||
+      (ageFilter === "7-9" && s.age >= 7 && s.age <= 9) ||
+      (ageFilter === "10-12" && s.age >= 10 && s.age <= 12) ||
+      (ageFilter === "13-15" && s.age >= 13 && s.age <= 15);
+    return matchSearch && matchAge;
+  });
 
   return (
-    <div className="p-6 space-y-4">
-      {/* Header */}
-      <Typography variant="h5" className="font-bold text-blue-700">
-        Daftar Siswa
-      </Typography>
-
-      {/* Search & Filter Bar */}
-      <div className="flex flex-wrap gap-3 bg-white p-4 rounded-xl shadow-sm items-center">
-        <TextField
-          size="small"
-          placeholder="Cari nama siswa..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon color="primary" />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ flex: 1, minWidth: 220 }}
-        />
-
-        <FormControl size="small" sx={{ minWidth: 160 }}>
-          <InputLabel>Filter Usia</InputLabel>
-          <Select
-            value={ageFilter}
-            onChange={(e) => setAgeFilter(e.target.value)}
-            label="Filter Usia"
-          >
-            <MenuItem value="all">Semua</MenuItem>
-            <MenuItem value="7-9">7–9 Tahun</MenuItem>
-            <MenuItem value="10-12">10–12 Tahun</MenuItem>
-            <MenuItem value="13-15">13–15 Tahun</MenuItem>
-          </Select>
-        </FormControl>
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <Typography variant="h5" className="font-bold text-blue-600">
+          Data Siswa
+        </Typography>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          color="primary"
+          onClick={() => setAdding(true)}
+        >
+          Tambah
+        </Button>
       </div>
 
-      {/* Tabel */}
-      <TableContainer
-        component={Paper}
-        className="shadow-md rounded-xl overflow-hidden"
-      >
-        <Table>
-          <TableHead className="bg-blue-600">
-            <TableRow>
-              <TableCell className="text-white font-semibold">Nama</TableCell>
-              <TableCell className="text-white font-semibold">Usia</TableCell>
-              <TableCell className="text-white font-semibold hidden md:table-cell">
-                Gender
-              </TableCell>
-              <TableCell className="text-white font-semibold hidden md:table-cell">
-                Telepon
-              </TableCell>
-
-Aditya, [10/4/2025 3:43 PM]
-<TableCell className="text-white font-semibold hidden md:table-cell">
-                Orang Tua
-              </TableCell>
-              <TableCell align="center" className="text-white font-semibold">
-                Aksi
-              </TableCell>
-            </TableRow>
-          </TableHead>
-
-          <TableBody>
-            {paginatedStudents.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} align="center" className="p-6">
-                  Belum ada data siswa
-                </TableCell>
-              </TableRow>
-            ) : (
-              paginatedStudents.map((student) => (
-                <React.Fragment key={student.id}>
-                  <TableRow hover>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold">{student.name}</span>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleToggleExpand(student.id)}
-                        >
-                          {expandedRow === student.id ? (
-                            <ExpandLessIcon />
-                          ) : (
-                            <ExpandMoreIcon />
-                          )}
-                        </IconButton>
-                      </div>
-                    </TableCell>
-                    <TableCell>{student.age}</TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {student.gender}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {student.phone}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {student.parent_name || student.parentName}
-                    </TableCell>
-
-                    {/* Tombol Aksi */}
-                    <TableCell align="center">
-                      <div className="flex justify-center gap-2 flex-wrap">
-                        <Button
-                          onClick={() => onView(student)}
-                          variant="outlined"
-                          color="info"
-                          size="small"
-                          sx={{ textTransform: "none", minWidth: "95px" }}
-                          startIcon={<VisibilityIcon />}
-                        >
-                          Info
-                        </Button>
-                        <Button
-                          onClick={() => onEdit(student)}
-                          variant="outlined"
-                          color="primary"
-                          size="small"
-                          sx={{ textTransform: "none", minWidth: "95px" }}
-                          startIcon={<EditIcon />}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          onClick={() => onInput(student)}
-                          variant="outlined"
-                          color="secondary"
-                          size="small"
-                          sx={{ textTransform: "none", minWidth: "95px" }}
-                          startIcon={<AssignmentIcon />}
-                        >
-                          Nilai
-                        </Button>
-                        <Button
-                          onClick={() => onDelete(student.id)}
-                          variant="outlined"
-                          color="error"
-                          size="small"
-                          sx={{ textTransform: "none", minWidth: "95px" }}
-                          startIcon={<DeleteIcon />}
-                        >
-                          Hapus
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-
-Aditya, [10/4/2025 3:43 PM]
-{/* Collapse detail for mobile */}
-                  <TableRow className="md:hidden bg-gray-50">
-                    <TableCell colSpan={6} sx={{ p: 0 }}>
-                      <Collapse
-                        in={expandedRow === student.id}
-                        timeout="auto"
-                        unmountOnExit
-                      >
-                        <div className="p-4 space-y-1 text-sm">
-                          <p>
-                            <strong>Gender:</strong> {student.gender}
-                          </p>
-                          <p>
-                            <strong>Telepon:</strong> {student.phone}
-                          </p>
-                          <p>
-                            <strong>Orang Tua:</strong>{" "}
-                            {student.parent_name || student.parentName}
-                          </p>
-                        </div>
-                      </Collapse>
-                    </TableCell>
-                  </TableRow>
-                </React.Fragment>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      {/* Pagination */}
-      <TablePagination
-        component="div"
-        count={filteredStudents.length}
-        page={page}
-        onPageChange={handleChangePage}
-        rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-        labelRowsPerPage="Baris per halaman"
+      <StudentFilterBar
+        search={search}
+        setSearch={setSearch}
+        ageFilter={ageFilter}
+        setAgeFilter={setAgeFilter}
       />
+
+      {loading ? (
+        <div className="flex justify-center py-8">
+          <CircularProgress />
+        </div>
+      ) : filtered.length === 0 ? (
+        <Typography align="center" color="textSecondary">
+          Belum ada data siswa.
+        </Typography>
+      ) : (
+        <Paper className="overflow-x-auto rounded-xl shadow-md">
+          <table className="min-w-full border-collapse">
+            <thead className="bg-blue-600 text-white">
+              <tr>
+                <th className="p-3 text-left">Nama</th>
+                <th className="p-3 text-left">Usia</th>
+                <th className="p-3 text-left">Gender</th>
+                <th className="p-3 text-left">Telepon</th>
+                <th className="p-3 text-left">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((s) => (
+                <tr
+                  key={s.id}
+                  className="hover:bg-blue-50 border-b transition"
+                >
+                  <td className="p-3">{s.name}</td>
+                  <td className="p-3">{s.age}</td>
+                  <td className="p-3">{s.gender}</td>
+                  <td className="p-3">{s.phone}</td>
+                  <td className="p-3 flex gap-2">
+                    <IconButton onClick={() => setSelected(s)} color="info">
+                      <InfoIcon />
+                    </IconButton>
+                    <IconButton
+                      onClick={() => setEditing(s)}
+                      color="primary"
+                      size="small"
+                    >
+                      <AddIcon />
+                    </IconButton>
+                    <IconButton
+                      onClick={() => handleDelete(s.id)}
+                      color="error"
+                      size="small"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Paper>
+      )}
+
+      {(adding || editing) && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-[90%] md:w-[500px]">
+            <StudentForm
+              onSubmit={adding ? handleAdd : handleUpdate}
+              initialData={editing || {}}
+              onCancel={() => {
+                setAdding(false);
+                setEditing(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {selected && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-[90%] md:w-[500px]">
+            <StudentDetail student={selected} onClose={() => setSelected(null)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
