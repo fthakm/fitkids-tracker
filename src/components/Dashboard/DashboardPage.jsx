@@ -2,195 +2,214 @@ import React, { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
-  FormControl,
-  InputLabel,
+  Typography,
   MenuItem,
   Select,
-  Typography,
+  FormControl,
+  InputLabel,
   Grid,
+  Box,
 } from "@mui/material";
 import {
-  LineChart,
-  Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
+  LineChart,
+  Line,
 } from "recharts";
-import { getAverageProgress, getTopStudents } from "../../services/evaluasiService";
+import { getStudents } from "../../services/studentService";
+import { getLatihanData } from "../../services/latihanService";
 
-const DashboardPage = () => {
-  const [usiaFilter, setUsiaFilter] = useState("all");
-  const [latihanFilter, setLatihanFilter] = useState("all");
-  const [progressData, setProgressData] = useState([]);
-  const [topRajin, setTopRajin] = useState([]);
-  const [topJarang, setTopJarang] = useState([]);
-  const [topPerforma, setTopPerforma] = useState([]);
-  const [targetData, setTargetData] = useState([]);
+export default function DashboardPage() {
+  const [students, setStudents] = useState([]);
+  const [filterAge, setFilterAge] = useState("all");
+  const [filterLatihan, setFilterLatihan] = useState("all");
+  const [latihanData, setLatihanData] = useState([]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const progress = await getAverageProgress(usiaFilter, latihanFilter);
-      const { rajin, jarang, performa, target } = await getTopStudents();
-      setProgressData(progress);
-      setTopRajin(rajin);
-      setTopJarang(jarang);
-      setTopPerforma(performa);
-      setTargetData(target);
-    };
-    fetchData();
-  }, [usiaFilter, latihanFilter]);
+    loadData();
+  }, []);
 
-  const COLORS = ["#2563eb", "#60a5fa", "#dbeafe", "#1e3a8a"];
+  const loadData = async () => {
+    try {
+      const studentsData = await getStudents();
+      setStudents(studentsData);
+      const latihan = await getLatihanData();
+      setLatihanData(latihan);
+    } catch (err) {
+      console.error("Gagal ambil data dashboard:", err.message);
+    }
+  };
+
+  // Mock data buat contoh tampilan grafik
+  const avgProgressData = [
+    { month: "Jan", score: 72 },
+    { month: "Feb", score: 80 },
+    { month: "Mar", score: 78 },
+    { month: "Apr", score: 85 },
+    { month: "May", score: 90 },
+    { month: "Jun", score: 88 },
+  ];
+
+  const performanceData = [
+    { name: "Rafi", avg: 92 },
+    { name: "Dina", avg: 87 },
+    { name: "Fajar", avg: 84 },
+  ];
+
+  const lazyStudents = [
+    { name: "Bima", latihan: 3 },
+    { name: "Lala", latihan: 4 },
+    { name: "Gilang", latihan: 5 },
+  ];
+
+  const targetData = [
+    { status: "Mencapai Target", jumlah: 18 },
+    { status: "Belum Mencapai", jumlah: 7 },
+  ];
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
-      {/* Header */}
-      <Typography
-        variant="h4"
-        className="font-bold text-blue-700 tracking-wide mb-4"
-      >
-        Dashboard Performa Siswa
+    <div className="space-y-8">
+      {/* ======= HEADER ======= */}
+      <Typography variant="h5" className="font-bold text-blue-600">
+        Dashboard Aktivitas Siswa
       </Typography>
 
-      {/* Filter Bar */}
-      <div className="flex flex-wrap gap-4 bg-white p-4 rounded-xl shadow-sm">
-        <FormControl size="small" sx={{ minWidth: 150 }}>
+      {/* ======= FILTER ======= */}
+      <Box className="flex flex-wrap gap-4">
+        <FormControl sx={{ minWidth: 160 }}>
           <InputLabel>Filter Usia</InputLabel>
           <Select
-            value={usiaFilter}
-            onChange={(e) => setUsiaFilter(e.target.value)}
+            value={filterAge}
             label="Filter Usia"
+            onChange={(e) => setFilterAge(e.target.value)}
           >
             <MenuItem value="all">Semua</MenuItem>
-            <MenuItem value="7-9">7–9 Tahun</MenuItem>
-            <MenuItem value="10-12">10–12 Tahun</MenuItem>
-            <MenuItem value="13-15">13–15 Tahun</MenuItem>
+            <MenuItem value="7-9">7-9 tahun</MenuItem>
+            <MenuItem value="10-12">10-12 tahun</MenuItem>
+            <MenuItem value="13-15">13-15 tahun</MenuItem>
           </Select>
         </FormControl>
 
-        <FormControl size="small" sx={{ minWidth: 180 }}>
-          <InputLabel>Jenis Latihan</InputLabel>
+        <FormControl sx={{ minWidth: 160 }}>
+          <InputLabel>Filter Latihan</InputLabel>
           <Select
-            value={latihanFilter}
-            onChange={(e) => setLatihanFilter(e.target.value)}
-            label="Jenis Latihan"
+            value={filterLatihan}
+            label="Filter Latihan"
+            onChange={(e) => setFilterLatihan(e.target.value)}
           >
-            <MenuItem value="all">Semua</MenuItem>
+            <MenuItem value="all">Semua Latihan</MenuItem>
             <MenuItem value="lari">Lari</MenuItem>
+            <MenuItem value="lompat">Lompat</MenuItem>
             <MenuItem value="pushup">Push Up</MenuItem>
-            <MenuItem value="situp">Sit Up</MenuItem>
           </Select>
         </FormControl>
-      </div>
+      </Box>
 
-      {/* Grafik Section */}
-      <Grid container spacing={4}>
-        {/* Grafik 1: Progress Latihan */}
+      {/* ======= GRAFIK PROGRESS ======= */}
+      <Card className="shadow-md rounded-xl">
+        <CardContent>
+          <Typography variant="h6" className="font-semibold mb-4 text-gray-700">
+            Grafik Rata-rata Perkembangan Latihan
+          </Typography>
+          <div className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={avgProgressData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Line
+                  type="monotone"
+                  dataKey="score"
+                  stroke="#3b82f6"
+                  strokeWidth={3}
+                  dot={{ fill: "#1e3a8a" }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ======= SISWA TERBAIK ======= */}
+      <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
           <Card className="shadow-md rounded-xl">
             <CardContent>
-              <Typography variant="h6" className="mb-3 font-semibold text-blue-600">
-                Rata-rata Progress Latihan
+              <Typography
+                variant="h6"
+                className="font-semibold mb-4 text-gray-700"
+              >
+                3 Siswa Paling Rajin Latihan
               </Typography>
-              <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={progressData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="bulan" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="rataRata" stroke="#2563eb" strokeWidth={3} />
-                </LineChart>
-              </ResponsiveContainer>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={performanceData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="avg" fill="#2563eb" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Grafik 2: Siswa Rajin & Jarang */}
         <Grid item xs={12} md={6}>
           <Card className="shadow-md rounded-xl">
             <CardContent>
-              <Typography variant="h6" className="mb-3 font-semibold text-blue-600">
-
-Aditya, [10/4/2025 3:40 PM]
-Siswa Paling Rajin vs Jarang Latihan
+              <Typography
+                variant="h6"
+                className="font-semibold mb-4 text-gray-700"
+              >
+                3 Siswa Paling Jarang Latihan
               </Typography>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={[...topRajin, ...topJarang]}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="nama" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="jumlahLatihan" fill="#3b82f6" name="Rajin" />
-                  <Bar dataKey="jumlahJarang" fill="#93c5fd" name="Jarang" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Grafik 3: Performa Terbaik & Terburuk */}
-        <Grid item xs={12} md={6}>
-          <Card className="shadow-md rounded-xl">
-            <CardContent>
-              <Typography variant="h6" className="mb-3 font-semibold text-blue-600">
-                Performa Terbaik & Terburuk
-              </Typography>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={topPerforma}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="nama" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="skor" fill="#2563eb" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Grafik 4: Persentase Target */}
-        <Grid item xs={12} md={6}>
-          <Card className="shadow-md rounded-xl">
-            <CardContent>
-              <Typography variant="h6" className="mb-3 font-semibold text-blue-600">
-                Pencapaian Target Bulanan
-              </Typography>
-              <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie
-                    data={targetData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={90}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) =>
-                      ${name}: ${(percent * 100).toFixed(0)}%
-                    }
-                  >
-                    {targetData.map((_, index) => (
-                      <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={lazyStudents}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar
+                      dataKey="latihan"
+                      fill="#f43f5e"
+                      radius={[8, 8, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
         </Grid>
       </Grid>
+
+      {/* ======= TARGET CAPAIAN ======= */}
+      <Card className="shadow-md rounded-xl">
+        <CardContent>
+          <Typography variant="h6" className="font-semibold mb-4 text-gray-700">
+            Pencapaian Target Bulanan
+          </Typography>
+          <div className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={targetData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="status" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="jumlah" fill="#10b981" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
-};
-
-export default DashboardPage;
+                    }
