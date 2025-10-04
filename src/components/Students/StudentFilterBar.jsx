@@ -1,50 +1,60 @@
 import React from "react";
-import {
-  TextField,
-  InputAdornment,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-} from "@mui/material";
+import { TextField, InputAdornment, MenuItem, Select, FormControl, InputLabel, Button } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import AddIcon from "@mui/icons-material/Add";
 
 export default function StudentFilterBar({
   search,
-  setSearch,
+  onSearchChange,
   ageFilter,
-  setAgeFilter,
+  onAgeChange,
+  onAddStudent,
 }) {
   return (
-    <div className="flex flex-wrap gap-3 bg-white p-4 rounded-xl shadow-sm items-center">
-      <TextField
-        size="small"
-        placeholder="Cari nama siswa..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon color="primary" />
-            </InputAdornment>
-          ),
-        }}
-        sx={{ flex: 1, minWidth: 220 }}
-      />
+    <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between mb-4">
+      {/* Tombol Tambah */}
+      <Button
+        variant="contained"
+        color="primary"
+        startIcon={<AddIcon />}
+        onClick={onAddStudent}
+        className="!rounded-none"
+      >
+        Tambah Siswa
+      </Button>
 
-      <FormControl size="small" sx={{ minWidth: 160 }}>
+      {/* Filter Usia */}
+      <FormControl size="small" className="min-w-[120px]">
         <InputLabel>Filter Usia</InputLabel>
         <Select
           value={ageFilter}
-          onChange={(e) => setAgeFilter(e.target.value)}
           label="Filter Usia"
+          onChange={(e) => onAgeChange(e.target.value)}
         >
-          <MenuItem value="all">Semua</MenuItem>
-          <MenuItem value="7-9">7–9 Tahun</MenuItem>
-          <MenuItem value="10-12">10–12 Tahun</MenuItem>
-          <MenuItem value="13-15">13–15 Tahun</MenuItem>
+          <MenuItem value="">Semua</MenuItem>
+          {[6, 7, 8, 9, 10, 11, 12].map((age) => (
+            <MenuItem key={age} value={age}>
+              {age}
+            </MenuItem>
+          ))}
         </Select>
       </FormControl>
+
+      {/* Pencarian */}
+      <TextField
+        placeholder="Cari siswa atau orang tua..."
+        size="small"
+        value={search}
+        onChange={(e) => onSearchChange(e.target.value)}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon color="action" />
+            </InputAdornment>
+          ),
+        }}
+        className="sm:w-[280px] w-full"
+      />
     </div>
   );
 }
