@@ -3,213 +3,246 @@ import {
   Card,
   CardContent,
   Typography,
+  CircularProgress,
+  Button,
   MenuItem,
   Select,
   FormControl,
   InputLabel,
-  Grid,
-  Box,
+  ToggleButton,
+  ToggleButtonGroup,
 } from "@mui/material";
 import {
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  LineChart,
-  Line,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
 } from "recharts";
 import { getStudents } from "../../services/studentService";
-import { getLatihanData } from "../../services/latihanService";
+import { getLatihanSummary } from "../../services/latihanService";
+import { getLeaderboard } from "../../services/leaderboardService";
 
 export default function DashboardPage() {
+  const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState([]);
-  const [filterAge, setFilterAge] = useState("all");
-  const [filterLatihan, setFilterLatihan] = useState("all");
+  const [selectedStudent, setSelectedStudent] = useState("all");
+  const [selectedLatihan, setSelectedLatihan] = useState("all");
   const [latihanData, setLatihanData] = useState([]);
+  const [rajinData, setRajinData] = useState([]);
+  const [targetData, setTargetData] = useState([]);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [mode, setMode] = useState("rajin");
+
+  const COLORS = ["#2563EB", "#CBD5E1"];
 
   useEffect(() => {
-    loadData();
+    const loadAll = async () => {
+      try {
+        const [siswaRes, latihanRes, leaderboardRes] = await Promise.all([
+          getStudents(),
+          getLatihanSummary(),
+          getLeaderboard(),
+        ]);
+        setStudents(siswaRes);
+        setLatihanData(latihanRes.progressChart);
+        setRajinData(latihanRes.rajinData);
+        setTargetData(latihanRes.targetSummary);
+        setLeaderboard(leaderboardRes);
+      } catch (err) {
+        console.error("Gagal load data dashboard:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadAll();
   }, []);
 
-  const loadData = async () => {
-    try {
-      const studentsData = await getStudents();
-      setStudents(studentsData);
-      const latihan = await getLatihanData();
-      setLatihanData(latihan);
-    } catch (err) {
-      console.error("Gagal ambil data dashboard:", err.message);
-    }
-  };
-
-  // Mock data buat contoh tampilan grafik
-  const avgProgressData = [
-    { month: "Jan", score: 72 },
-    { month: "Feb", score: 80 },
-    { month: "Mar", score: 78 },
-    { month: "Apr", score: 85 },
-    { month: "May", score: 90 },
-    { month: "Jun", score: 88 },
-  ];
-
-  const performanceData = [
-    { name: "Rafi", avg: 92 },
-    { name: "Dina", avg: 87 },
-    { name: "Fajar", avg: 84 },
-  ];
-
-  const lazyStudents = [
-    { name: "Bima", latihan: 3 },
-    { name: "Lala", latihan: 4 },
-    { name: "Gilang", latihan: 5 },
-  ];
-
-  const targetData = [
-    { status: "Mencapai Target", jumlah: 18 },
-    { status: "Belum Mencapai", jumlah: 7 },
-  ];
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-[60vh]">
+        <CircularProgress />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-8">
-      {/* ======= HEADER ======= */}
+    <div className="p-6 space-y-6">
+      {/* Title */}
       <Typography variant="h5" className="font-bold text-blue-600">
-        Dashboard Aktivitas Siswa
+        Dashboard Performa Siswa
       </Typography>
 
-      {/* ======= FILTER ======= */}
-      <Box className="flex flex-wrap gap-4">
-        <FormControl sx={{ minWidth: 160 }}>
-          <InputLabel>Filter Usia</InputLabel>
-          <Select
-            value={filterAge}
-            label="Filter Usia"
-            onChange={(e) => setFilterAge(e.target.value)}
-          >
-            <MenuItem value="all">Semua</MenuItem>
-            <MenuItem value="7-9">7-9 tahun</MenuItem>
-            <MenuItem value="10-12">10-12 tahun</MenuItem>
-            <MenuItem value="13-15">13-15 tahun</MenuItem>
-          </Select>
-        </FormControl>
-
-        <FormControl sx={{ minWidth: 160 }}>
-          <InputLabel>Filter Latihan</InputLabel>
-          <Select
-            value={filterLatihan}
-            label="Filter Latihan"
-            onChange={(e) => setFilterLatihan(e.target.value)}
-          >
-            <MenuItem value="all">Semua Latihan</MenuItem>
-            <MenuItem value="lari">Lari</MenuItem>
-            <MenuItem value="lompat">Lompat</MenuItem>
-            <MenuItem value="pushup">Push Up</MenuItem>
-          </Select>
-        </FormControl>
-      </Box>
-
-      {/* ======= GRAFIK PROGRESS ======= */}
-      <Card className="shadow-md rounded-xl">
+      {/* 1️⃣ Grafik Progress */}
+      <Card className="shadow-lg rounded-xl">
         <CardContent>
-          <Typography variant="h6" className="font-semibold mb-4 text-gray-700">
-            Grafik Rata-rata Perkembangan Latihan
-          </Typography>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={avgProgressData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="score"
-                  stroke="#3b82f6"
-                  strokeWidth={3}
-                  dot={{ fill: "#1e3a8a" }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-4">
+            <Typography variant="h6" className="font-semibold text-gray-700">
+              Grafik Progress Rata-Rata Siswa
+            </Typography>
+            <div className="flex gap-4 mt-2 md:mt-0">
+              <FormControl size="small">
+                <InputLabel>Siswa</InputLabel>
+                <Select
+                  value={selectedStudent}
+                  label="Siswa"
+                  onChange={(e) => setSelectedStudent(e.target.value)}
+                >
+                  <MenuItem value="all">Semua</MenuItem>
+                  {students.map((s) => (
+                    <MenuItem key={s.id} value={s.id}>
+                      {s.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControl size="small">
+                <InputLabel>Latihan</InputLabel>
+                <Select
+                  value={selectedLatihan}
+                  label="Latihan"
+                  onChange={(e) => setSelectedLatihan(e.target.value)}
+                >
+                  <MenuItem value="all">Semua</MenuItem>
+                  <MenuItem value="lari">Lari</MenuItem>
+                  <MenuItem value="pushup">Push-Up</MenuItem>
+                  <MenuItem value="situp">Sit-Up</MenuItem>
+                </Select>
+              </FormControl>
+            </div>
+          </div>
+
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={latihanData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="tanggal" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="nilai" stroke="#2563EB" strokeWidth={3} />
+            </LineChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      {/* 2️⃣ Siswa Paling Rajin / Jarang */}
+      <Card className="shadow-lg rounded-xl">
+        <CardContent>
+          <div className="flex justify-between items-center mb-4">
+            <Typography variant="h6" className="font-semibold text-gray-700">
+              Siswa {mode === "rajin" ? "Paling Rajin" : "Paling Jarang"} Latihan
+            </Typography>
+            <ToggleButtonGroup
+              value={mode}
+              exclusive
+              onChange={(e, v) => v && setMode(v)}
+              size="small"
+            >
+              <ToggleButton value="rajin">Rajin</ToggleButton>
+              <ToggleButton value="jarang">Jarang</ToggleButton>
+            </ToggleButtonGroup>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-4">
+            {rajinData
+              .filter((d) => (mode === "rajin" ? d.type === "rajin" : d.type === "jarang"))
+              .slice(0, 3)
+              .map((s, i) => (
+                <Card
+                  key={i}
+                  className="p-4 border border-gray-200 hover:shadow-md transition"
+                >
+                  <Typography className="font-semibold text-blue-600">
+                    {s.name}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    {s.totalLatihan} sesi latihan
+                  </Typography>
+                </Card>
+              ))}
           </div>
         </CardContent>
       </Card>
 
-      {/* ======= SISWA TERBAIK ======= */}
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <Card className="shadow-md rounded-xl">
-            <CardContent>
-              <Typography
-                variant="h6"
-                className="font-semibold mb-4 text-gray-700"
-              >
-                3 Siswa Paling Rajin Latihan
-              </Typography>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={performanceData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="avg" fill="#2563eb" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Card className="shadow-md rounded-xl">
-            <CardContent>
-              <Typography
-                variant="h6"
-                className="font-semibold mb-4 text-gray-700"
-              >
-                3 Siswa Paling Jarang Latihan
-              </Typography>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={lazyStudents}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar
-                      dataKey="latihan"
-                      fill="#f43f5e"
-                      radius={[8, 8, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-
-      {/* ======= TARGET CAPAIAN ======= */}
-      <Card className="shadow-md rounded-xl">
+      {/* 3️⃣ Grafik Target */}
+      <Card className="shadow-lg rounded-xl">
         <CardContent>
-          <Typography variant="h6" className="font-semibold mb-4 text-gray-700">
-            Pencapaian Target Bulanan
+          <Typography variant="h6" className="font-semibold text-gray-700 mb-4">
+            Target Tercapai vs Belum
           </Typography>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={targetData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="status" />
-                <YAxis />
+          <div className="flex flex-col md:flex-row items-center justify-center gap-6">
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={targetData}
+                  dataKey="value"
+                  nameKey="label"
+                  outerRadius={90}
+                  label
+                >
+                  {targetData.map((_, i) => (
+                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                  ))}
+                </Pie>
                 <Tooltip />
-                <Bar dataKey="jumlah" fill="#10b981" radius={[8, 8, 0, 0]} />
-              </BarChart>
+                <Legend />
+              </PieChart>
             </ResponsiveContainer>
+            <div>
+              <Typography variant="body1" className="font-semibold mb-2">
+                Detail Latihan Belum Tercapai:
+              </Typography>
+              <ul className="list-disc pl-6 text-sm text-gray-700">
+                {targetData
+                  .filter((t) => t.label === "Belum Tercapai")[0]?.detail || [
+                    "Tidak ada data",
+                  ].map((d, i) => (
+                    <li key={i}>{d}</li>
+                  ))}
+              </ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 4️⃣ Top Performa Bulanan */}
+      <Card className="shadow-lg rounded-xl">
+        <CardContent>
+          <div className="flex justify-between items-center mb-4">
+            <Typography variant="h6" className="font-semibold text-gray-700">
+              Top Performa Bulan Ini
+            </Typography>
+            <Button variant="text" size="small">
+              Lihat Semua
+            </Button>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-4">
+            {leaderboard.slice(0, 3).map((s, i) => (
+              <Card
+                key={i}
+                className="p-4 border border-gray-200 hover:shadow-md transition"
+              >
+                <Typography className="font-semibold text-blue-600">
+                  {s.name}
+                </Typography>
+                <Typography variant="body2">
+                  Skor Rata-rata: <b>{s.avgScore}</b>
+                </Typography>
+                <Typography variant="body2">
+                  Kehadiran: <b>{s.attendance}%</b>
+                </Typography>
+              </Card>
+            ))}
           </div>
         </CardContent>
       </Card>
     </div>
   );
-                    }
+      }
