@@ -1,32 +1,29 @@
 import React from "react";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Typography,
-  Stack,
-} from "@mui/material";
+import { Typography, Button, Divider } from "@mui/material";
 
-export default function StudentDetail({ open, onClose, student }) {
+export default function StudentDetail({ student, onClose }) {
   if (!student) return null;
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Detail Siswa</DialogTitle>
-      <DialogContent>
-        <Stack spacing={1} mt={1}>
-          <Typography><b>Nama:</b> {student.name}</Typography>
-          <Typography><b>Usia:</b> {student.age}</Typography>
-          <Typography><b>Gender:</b> {student.gender}</Typography>
-          <Typography><b>Telepon:</b> {student.phone}</Typography>
-          <Typography><b>Orang Tua:</b> {student.parent_name}</Typography>
-        </Stack>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Tutup</Button>
-      </DialogActions>
-    </Dialog>
+    <div className="space-y-4">
+      <Typography variant="h6" className="text-blue-600 font-semibold">
+        Detail Siswa
+      </Typography>
+      <Divider />
+
+      <div className="space-y-2">
+        <p><strong>Nama:</strong> {student.name}</p>
+        <p><strong>Usia:</strong> {student.age}</p>
+        <p><strong>Jenis Kelamin:</strong> {student.gender}</p>
+        <p><strong>Nama Orang Tua:</strong> {student.parent_name || "-"}</p>
+        <p><strong>No. Telepon:</strong> {student.phone || "-"}</p>
+      </div>
+
+      <div className="flex justify-end">
+        <Button onClick={onClose} variant="contained" color="primary">
+          Tutup
+        </Button>
+      </div>
+    </div>
   );
 }
