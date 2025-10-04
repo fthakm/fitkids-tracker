@@ -1,13 +1,13 @@
-import { supabase } from '../supabaseClient';
+import { supabase } from "../supabaseClient";
 
-export async function addLatihan(latihan) {
-  const { data, error } = await supabase.from('latihan').insert([latihan]).select().single();
+export async function getAllLatihan() {
+  const { data, error } = await supabase.from("latihan").select("*");
   if (error) throw error;
   return data;
 }
 
-export async function getLatihanList() {
-  const { data, error } = await supabase.from('latihan').select('*').order('date', { ascending: false });
+export async function addLatihan(latihanData) {
+  const { data, error } = await supabase.from("latihan").insert([latihanData]);
   if (error) throw error;
-  return data || [];
+  return data;
 }
