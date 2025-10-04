@@ -1,19 +1,23 @@
-import { supabase } from '../supabaseClient';
+import { supabase } from "../supabaseClient";
 
-export async function getEvaluations() {
-  const { data, error } = await supabase.from('evaluations').select('*').order('date', { ascending: false });
-  if (error) throw error;
-  return data || [];
-}
-
-export async function addEvaluation(evaluation) {
-  const { data, error } = await supabase.from('evaluations').insert([evaluation]).select().single();
+export async function getAllEvaluasi() {
+  const { data, error } = await supabase
+    .from("evaluasi")
+    .select("*")
+    .order("date", { ascending: false });
   if (error) throw error;
   return data;
 }
 
-export async function updateEvaluation(id, updates) {
-  const { data, error } = await supabase.from('evaluations').update(updates).eq('id', id).select().single();
+export async function filterEvaluasi(studentId, month) {
+  let query = supabase
+    .from("evaluasi")
+    .select("*")
+    .gte("month", month)
+    .lte("month", month);
+
+  if (studentId !== "all") query = query.eq("student_id", studentId);
+  const { data, error } = await query;
   if (error) throw error;
   return data;
 }
