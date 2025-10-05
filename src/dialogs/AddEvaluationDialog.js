@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, Button, Stack, TextField, MenuItem
 } from "@mui/material";
-import { saveResults } from "../services/evaluationService";
+import { saveResults } from "../services/evaluationsService";
 import { getStudents } from "../services/studentService";
 
 export default function InputResultsDialog({ open, onClose, defaultStudentId }) {
@@ -22,7 +22,7 @@ export default function InputResultsDialog({ open, onClose, defaultStudentId }) 
     setLoading(true);
     try {
       // expect saveResults(service) to accept object with student_id, score, attendance, month
-      await saveResults(form.student_id, { score: parseInt(form.score || 0, 10), attendance: parseInt(form.attendance || 0, 10), month: form.month });
+      await saveResults(form.student_id, { score: form.score || 0, attendance: form.attendance || 0, month: form.month });
       onClose(true);
     } catch (e) {
       console.error(e);
