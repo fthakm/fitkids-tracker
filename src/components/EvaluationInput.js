@@ -54,7 +54,7 @@ export default function EvaluationInput({ student, onSuccess }) {
           <input
             type="text"
             className="border p-2 w-full"
-            placeholder="Isi nilai..."
+            placeholder="Isi nilai"
             value={values[c.test] || ""}
             onChange={(e) => handleChange(c.test, e.target.value)}
           />
@@ -94,4 +94,4 @@ function getLabel(criteria, value) {
     }
   }
   return "Kurang";
-              }
+}
