@@ -147,4 +147,5 @@ export default function StudentDetail({ student }) {
       </Box>
     </Paper>
   );
-    }
+}
+            
