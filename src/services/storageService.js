@@ -1,4 +1,4 @@
-import supabase from '../supabaseClient';
+import supabase from './supabaseClient';
 // src/services/storageService.js
 import { supabase } from "../supabaseClient";
 
