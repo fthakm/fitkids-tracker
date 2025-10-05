@@ -1,4 +1,4 @@
-import supabase from "../supabaseClient";
+import supabase from "./supabaseClient";
 
 // Ambil rekap nilai rata-rata siswa per bulan
 export async function getEvaluasiSummary(month = "all") {
