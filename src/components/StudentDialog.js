@@ -79,4 +79,4 @@ export default function StudentDialog({ open, onClose, student }) {
       </DialogActions>
     </Dialog>
   );
-                                }
+}
