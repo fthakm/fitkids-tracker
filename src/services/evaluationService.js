@@ -34,3 +34,14 @@ export async function getEvaluasiSummary(month = "all") {
     };
   });
 }
+
+
+// Simple saveResults wrapper
+export const saveResults = async (student_id, payload) => {
+  const { data, error } = await (typeof supabase !== 'undefined' ? supabase : (await import('./supabaseClient')).default)
+    .from('student_results')
+    .insert([{ student_id, score: payload.score, attendance: payload.attendance, month: payload.month }])
+    .select();
+  if (error) throw error;
+  return data[0];
+};
