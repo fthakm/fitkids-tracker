@@ -74,7 +74,7 @@ export default function StudentList({
       (s.parent_name || s.parentName || "")
         .toLowerCase()
         .includes(search.toLowerCase());
-    const matchAge = ageFilter ? s.age === parseInt(ageFilter, 10) : true;
+    const matchAge = ageFilter ? s.age === ageFilter : true;
     return matchSearch && matchAge;
   });
 
@@ -312,7 +312,7 @@ export default function StudentList({
         onPageChange={(e, newPage) => setPage(newPage)}
         rowsPerPage={rowsPerPage}
         onRowsPerPageChange={(e) => {
-          setRowsPerPage(parseInt(e.target.value, 10));
+          setRowsPerPage(e.target.value);
           setPage(0);
         }}
         rowsPerPageOptions={[5, 10, 25, 50]}

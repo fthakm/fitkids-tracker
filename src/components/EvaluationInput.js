@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { evaluationCriteria } from "../utils/evaluationCriteria";
-import { addEvaluation } from "../services/evaluationService";
+import { addEvaluation } from "../services/evaluationsService";
 // kalau pakai MUI:
 import { Button } from "@mui/material";
 // kalau mau pakai shadcn, pastikan file `src/components/ui/button.js` ada

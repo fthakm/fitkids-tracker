@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getEvaluationsByStudent } from "../services/evaluationService";
+import { getEvaluationsByStudent } from "../services/evaluationsService";
 import { Card, CardContent } from "@mui/material";
 
 export default function EvaluationList({ student, onSelect }) {
