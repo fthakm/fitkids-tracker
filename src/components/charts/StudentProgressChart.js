@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Paper, Typography, Box, CircularProgress } from "@mui/material";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { getStudents } from "../../services/studentService";
-import { getEvaluasiSummary } from "../../services/evaluationService";
+import { getEvaluasiSummary } from "../../services/evaluationsService";
 
 export default function StudentProgressChart() {
   const [data, setData] = useState(null);

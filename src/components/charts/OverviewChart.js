@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import { Paper, Typography, Box, CircularProgress } from "@mui/material";
-import { getEvaluasiSummary } from "../../services/evaluationService";
+import { getEvaluasiSummary } from "../../services/evaluationsService";
 
 export default function OverviewChart() {
   const [data, setData] = useState(null);
