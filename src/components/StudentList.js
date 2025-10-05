@@ -124,7 +124,7 @@ export default function StudentList({
 
         {/* Search */}
         <TextField
-          placeholder="Cari siswa atau orang tua..."
+          placeholder="Cari siswa atau orang tua"
           variant="outlined"
           size="small"
           value={search}
@@ -337,4 +337,5 @@ export default function StudentList({
       </Menu>
     </Box>
   );
-                        }
+        }
+                    
