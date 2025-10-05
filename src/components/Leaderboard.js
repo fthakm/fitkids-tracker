@@ -1,102 +1,60 @@
 import React, { useEffect, useState } from "react";
-import { getStudentDashboardData } from "../services/studentService";
+import { getLeaderboard } from "../services/leaderboardService";
 import {
-  Box,
-  Typography,
-  Paper,
-  Grid,
-  Avatar,
-  Chip,
+  Box, Typography, Paper, Grid, Avatar, Chip, CircularProgress, Table, TableBody, TableCell, TableHead, TableRow
 } from "@mui/material";
 
-export default function Leaderboard() {
-  const [students, setStudents] = useState([]);
+export default function Leaderboard({ category = 1 }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getStudentDashboardData().then((data) => {
-      const ranked = data.map((s) => {
-        const scores = (s.results || []).map((r) => r.score);
-        const avg = scores.length
-          ? scores.reduce((a, b) => a + b, 0) / scores.length
-          : 0;
-        const badgeCount = s.badges ? s.badges.length : 0;
+    let mounted = true;
+    setLoading(true);
+    getLeaderboard(category).then((rows) => {
+      if (mounted) setData(rows);
+    }).catch((e) => {
+      console.error("Leaderboard load error", e);
+      if (mounted) setData([]);
+    }).finally(() => mounted && setLoading(false));
+    return () => { mounted = false; };
+  }, [category]);
 
-        return { ...s, avgScore: Math.round(avg), badgeCount };
-      });
-
-      // Urutkan: jumlah badge desc → avgScore desc
-      ranked.sort((a, b) => {
-        if (b.badgeCount !== a.badgeCount) {
-          return b.badgeCount - a.badgeCount;
-        }
-        return b.avgScore - a.avgScore;
-      });
-
-      setStudents(ranked);
-    });
-  }, []);
+  if (loading) return <Box display="flex" alignItems="center" justifyContent="center" p={4}><CircularProgress/></Box>;
 
   return (
-    <Box>
-      <Typography variant="h5" gutterBottom>
-        Leaderboard
-      </Typography>
-      <Grid container spacing={2}>
-        {students.map((s, idx) => (
-          <Grid item xs={12} key={s.student_id}>
-            <Paper
-              sx={{
-                p: 2,
-                borderRadius: 2,
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              {/* Peringkat */}
-              <Typography
-                variant="h6"
-                sx={{ width: 40, textAlign: "center", mr: 2 }}
-              >
-                #{idx + 1}
-              </Typography>
-
-              {/* Avatar */}
-              <Avatar
-                src={s.photo_url || ""}
-                sx={{ width: 56, height: 56, mr: 2 }}
-              >
-                {s.name.charAt(0)}
-              </Avatar>
-
-              {/* Info siswa */}
-              <Box flexGrow={1}>
-                <Typography variant="subtitle1">{s.name}</Typography>
-                <Typography variant="body2">
-                  Rata-rata skor: {s.avgScore}
-                </Typography>
-
-                {/* Badge */}
-                <Box mt={1}>
-                  {s.badges && s.badges.length > 0 ? (
-                    s.badges.map((b, i) => (
-                      <Chip
-                        key={i}
-                        label={b.badge_name}
-                        size="small"
-                        sx={{ mr: 1, mb: 1 }}
-                      />
-                    ))
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      Belum ada badge
-                    </Typography>
-                  )}
-                </Box>
-              </Box>
-            </Paper>
-          </Grid>
-        ))}
-      </Grid>
-    </Box>
+    <Paper elevation={2} sx={{ p:2 }}>
+      <Typography variant="h6" sx={{ mb:2 }}>Leaderboard</Typography>
+      {(!data || data.length === 0) ? (
+        <Typography variant="body2">Belum ada data.</Typography>
+      ) : (
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>#</TableCell>
+              <TableCell>Nama</TableCell>
+              <TableCell align="right">Score</TableCell>
+              <TableCell align="right">Attendance</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.map((s, i) => (
+              <TableRow key={s.id || s.name || i}>
+                <TableCell>{i+1}</TableCell>
+                <TableCell>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <Avatar sx={{ width:32, height:32 }}>{(s.name || "?").charAt(0)}</Avatar>
+                    <Typography>{s.name}</Typography>
+                  </Box>
+                </TableCell>
+                <TableCell align="right">{s.score ?? 0}</TableCell>
+                <TableCell align="right">{s.attendance ?? 0}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </Paper>
   );
-}
+        }
+              
