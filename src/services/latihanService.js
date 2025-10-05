@@ -1,4 +1,4 @@
-import supabase from './supabaseClient';
+import supabase from '../supabaseClient';
 
 export const getLatihanSessions = async () => {
   const { data, error } = await supabase.from('latihan_sessions').select('*').order('session_date', { ascending: false });
