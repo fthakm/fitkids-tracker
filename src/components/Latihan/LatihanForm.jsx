@@ -76,7 +76,7 @@ export default function LatihanForm({ onClose, onSaved }) {
           Batal
         </Button>
         <Button type="submit" variant="contained" color="primary" disabled={loading}>
-          {loading ? "Menyimpan..." : "Simpan"}
+          {loading ? "Menyimpan" : "Simpan"}
         </Button>
       </div>
     </form>
