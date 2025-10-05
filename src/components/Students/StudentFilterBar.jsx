@@ -14,7 +14,7 @@ export default function StudentFilterBar({
     <div className="flex flex-wrap gap-3 justify-between items-center">
       <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
         <TextField
-          placeholder="Cari siswa..."
+          placeholder="Cari siswa"
           size="small"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
@@ -52,6 +52,3 @@ export default function StudentFilterBar({
       >
         Tambah Siswa
       </Button>
-    </div>
-  );
-}
