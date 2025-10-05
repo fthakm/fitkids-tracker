@@ -1,0 +1,8 @@
+{
+  "short_name": "FitKids",
+  "name": "FitKids Tracker",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#00bcd4"
+}

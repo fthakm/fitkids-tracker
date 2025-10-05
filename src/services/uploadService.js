@@ -1,6 +1,6 @@
-import supabase from './supabaseClient';
+import supabase from '../supabaseClient';
 // src/services/storageService.js
-import { supabase } from "../supabaseClient";
+import { supabase } "../supabaseClient";
 
 export async function uploadStudentPhoto(file) {
   if (!file) return null;

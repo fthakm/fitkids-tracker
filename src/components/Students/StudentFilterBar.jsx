@@ -52,6 +52,3 @@ export default function StudentFilterBar({
       >
         Tambah Siswa
       </Button>
-      </div>
-    );
-}

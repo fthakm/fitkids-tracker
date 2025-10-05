@@ -1,4 +1,4 @@
-import supabase from "./supabaseClient";
+import supabase "../supabaseClient";
 
 // Ambil leaderboard berdasarkan kategori tab (0 = rajin, 1 = terbaik, 2 = kurang aktif)
 export async function getLeaderboard(tab = 0) {

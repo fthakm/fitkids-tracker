@@ -1,4 +1,4 @@
-import supabase from './supabaseClient';
+import supabase from '../supabaseClient';
 
 export const getStudentResults = async (student_id) => {
   const { data, error } = await supabase.from('student_results').select('*').eq('student_id', student_id).order('created_at', { ascending: false });
