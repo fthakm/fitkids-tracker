@@ -8,7 +8,7 @@ import {
   FormControl,
   InputLabel,
 } from "@mui/material";
-import { getEvaluasiSummary } from "../../services/evaluasiService";
+import { getEvaluasiSummary } from "../../services/evaluationsService";
 
 export default function EvaluasiPage() {
   const [loading, setLoading] = useState(true);
