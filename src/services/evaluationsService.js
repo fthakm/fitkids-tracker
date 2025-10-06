@@ -1,4 +1,4 @@
-import { supabase } from "./supabaseClient";
+import supabase from "./supabaseClient";
 
 /**
  * Ambil ringkasan evaluasi siswa.
