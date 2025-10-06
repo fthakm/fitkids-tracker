@@ -1,5 +1,14 @@
 import React from "react";
-import { TextField, InputAdornment, FormControl, InputLabel, Select, MenuItem, Button, Stack } from "@mui/material";
+import {
+  TextField,
+  InputAdornment,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Button,
+  Stack,
+} from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 
@@ -12,7 +21,11 @@ export default function StudentFilterBar({
 }) {
   return (
     <div className="flex flex-wrap gap-3 justify-between items-center">
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={2}
+        alignItems="center"
+      >
         <TextField
           placeholder="Cari siswa"
           size="small"
@@ -36,9 +49,9 @@ export default function StudentFilterBar({
             onChange={(e) => onAgeChange(e.target.value)}
           >
             <MenuItem value="all">Semua</MenuItem>
-            <MenuItem value="7-9">7-9 tahun</MenuItem>
-            <MenuItem value="10-12">10-12 tahun</MenuItem>
-            <MenuItem value="13-15">13-15 tahun</MenuItem>
+            <MenuItem value="7-9">7–9 tahun</MenuItem>
+            <MenuItem value="10-12">10–12 tahun</MenuItem>
+            <MenuItem value="13-15">13–15 tahun</MenuItem>
           </Select>
         </FormControl>
       </Stack>
@@ -52,3 +65,6 @@ export default function StudentFilterBar({
       >
         Tambah Siswa
       </Button>
+    </div>
+  );
+}
