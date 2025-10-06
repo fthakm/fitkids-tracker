@@ -1,4 +1,3 @@
-import supabase from './supabaseClient';
 import { createClient } from '@supabase/supabase-js';
 
 const url = process.env.REACT_APP_SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
