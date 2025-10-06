@@ -1,6 +1,6 @@
 
 // src/services/storageService.j
-import { supabase } "./supabaseClient";
+import supabase from "./supabaseClient";
 
 const BUCKET = "student-photos";
 
