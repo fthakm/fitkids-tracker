@@ -1,4 +1,4 @@
-import supabase from '../supabaseClient';
+import supabase from './supabaseClient';
 
 export const getStudents = async () => {
   const { data, error } = await supabase.from('students').select('*').order('name', { ascending: true });
